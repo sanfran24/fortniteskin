@@ -16,13 +16,28 @@ def estimate_price_y_position(price: float, min_price: float, max_price: float,
     """
     Estimate Y pixel position for a price level on the chart.
     Uses linear interpolation with improved accuracy.
+    
+    Args:
+        price: The price value to position
+        min_price: Minimum price visible on chart
+        max_price: Maximum price visible on chart
+        image_height: Total image height in pixels
+        chart_top: Top of chart area in pixels (from top of image)
+        chart_bottom: Bottom of chart area in pixels (from top of image)
     """
-    chart_height = image_height - chart_top - chart_bottom
+    # Calculate actual chart height
+    chart_height = chart_bottom - chart_top
+    
+    if chart_height <= 0:
+        logger.warning(f"⚠️ Invalid chart height: {chart_height} (top={chart_top}, bottom={chart_bottom})")
+        return image_height // 2
+    
     price_range = max_price - min_price
     
-    if price_range == 0 or price_range < 0:
+    # Ensure minimum price range to avoid division issues
+    if price_range <= 0:
         logger.warning(f"⚠️ Invalid price range: {min_price} - {max_price}, using center")
-        return image_height // 2
+        return chart_top + chart_height // 2
     
     # Clamp price to valid range to avoid out-of-bounds
     clamped_price = max(min_price, min(price, max_price))
@@ -37,13 +52,13 @@ def estimate_price_y_position(price: float, min_price: float, max_price: float,
     # Ensure normalized is between 0 and 1
     normalized = max(0.0, min(1.0, normalized))
     
-    # Convert to pixel position
+    # Convert to pixel position within chart area
     y_pos = chart_top + int(normalized * chart_height)
     
     # Clamp to chart bounds
-    final_y = max(chart_top, min(y_pos, image_height - chart_bottom))
+    final_y = max(chart_top, min(y_pos, chart_bottom))
     
-    logger.debug(f"📍 Price {price} -> Y={final_y} (normalized={normalized:.3f}, chart_height={chart_height}, range={min_price}-{max_price})")
+    logger.debug(f"📍 Price {price:,.2f} -> Y={final_y} (normalized={normalized:.4f}, chart_height={chart_height}, range={min_price:,.2f}-{max_price:,.2f})")
     
     return final_y
 
@@ -110,8 +125,12 @@ def get_price_range(analysis: Dict) -> Tuple[float, float]:
         parsed_min = parse_price(str(chart_min))
         parsed_max = parse_price(str(chart_max))
         if parsed_min is not None and parsed_max is not None and parsed_min < parsed_max:
+            # Use the chart's visible range directly - this is the most accurate
             logger.info(f"✅ Using chart's visible price range: {parsed_min:,.2f} - {parsed_max:,.2f}")
-            return parsed_min, parsed_max
+            # Add minimal padding (1-2%) to ensure all levels are visible
+            price_range = parsed_max - parsed_min
+            small_padding = price_range * 0.01  # 1% padding
+            return parsed_min - small_padding, parsed_max + small_padding
         else:
             logger.warning(f"⚠️ Invalid chart price range: {chart_min} - {chart_max}, falling back to analysis prices")
     
@@ -166,22 +185,38 @@ def get_price_range(analysis: Dict) -> Tuple[float, float]:
     # Add padding - use percentage-based padding for better accuracy
     price_range = max_price - min_price
     
+    # Ensure minimum price range to avoid issues
+    if price_range <= 0:
+        logger.warning(f"⚠️ Invalid price range: {min_price} - {max_price}")
+        if min_price > 0:
+            price_range = min_price * 0.2  # Use 20% of min_price as range
+            max_price = min_price + price_range
+        else:
+            price_range = 100
+            max_price = min_price + price_range
+    
     # For large price ranges (like millions), use smaller percentage padding
     # For small ranges, use larger percentage padding
     if price_range > 1000000:  # Millions range
+        padding_pct = 0.03  # 3% padding (reduced for accuracy)
+    elif price_range > 10000:  # Tens of thousands range
         padding_pct = 0.05  # 5% padding
     elif price_range > 1000:  # Thousands range
-        padding_pct = 0.1  # 10% padding
+        padding_pct = 0.08  # 8% padding
     else:  # Small numbers
-        padding_pct = 0.15  # 15% padding
+        padding_pct = 0.10  # 10% padding
     
     padding = price_range * padding_pct
     
     result_min = min_price - padding
     result_max = max_price + padding
     
-    logger.info(f"💰 Price range: {min_price} - {max_price} (range: {price_range})")
-    logger.info(f"📏 With {padding_pct*100}% padding: {result_min} - {result_max}")
+    # Ensure result_min is not negative (for prices)
+    if result_min < 0:
+        result_min = 0
+    
+    logger.info(f"💰 Price range: {min_price:,.2f} - {max_price:,.2f} (range: {price_range:,.2f})")
+    logger.info(f"📏 With {padding_pct*100}% padding: {result_min:,.2f} - {result_max:,.2f}")
     
     return result_min, result_max
 
@@ -309,10 +344,14 @@ def annotate_chart(image: Image.Image, analysis: Dict) -> Image.Image:
     # Charts typically have price axis on left/right, so leave more margin
     chart_left = int(width * 0.08)  # 8% margin for price axis
     chart_right = int(width * 0.95)  # 5% margin
-    chart_top = int(height * 0.08)  # 8% margin for top labels
-    chart_bottom = int(height * 0.92)  # 8% margin for bottom
+    chart_top_margin = int(height * 0.10)  # 10% margin for top labels/header
+    chart_bottom_margin = int(height * 0.10)  # 10% margin for bottom labels
+    chart_top = chart_top_margin  # Top of chart area (pixels from top)
+    chart_bottom = height - chart_bottom_margin  # Bottom of chart area (pixels from top)
+    chart_height = chart_bottom - chart_top  # Actual chart height
     
-    logger.info(f"Annotating chart: {width}x{height}, chart area: {chart_left}-{chart_right}, {chart_top}-{chart_bottom}")
+    logger.info(f"Annotating chart: {width}x{height}, chart area: {chart_left}-{chart_right}, {chart_top}-{chart_bottom} (height: {chart_height})")
+    logger.info(f"Price range: {min_price:,.2f} - {max_price:,.2f} (range: {max_price - min_price:,.2f})")
     logger.info(f"Has entry: {bool(analysis.get('entry'))}, Has SL: {bool(analysis.get('stop_loss'))}, Has TPs: {bool(analysis.get('take_profits'))}")
     
     # Get font
@@ -335,7 +374,7 @@ def annotate_chart(image: Image.Image, analysis: Dict) -> Image.Image:
         entry_price = parse_price(str(analysis['entry']['price']))
         if entry_price:
             entry_y = estimate_price_y_position(entry_price, min_price, max_price, 
-                                               height, chart_top, height - chart_bottom)
+                                               height, chart_top, chart_bottom)
             entry_x = int(width * 0.75)  # Right side of chart
             
             logger.info(f"Drawing entry at price {entry_price}, Y position: {entry_y}")
@@ -362,7 +401,7 @@ def annotate_chart(image: Image.Image, analysis: Dict) -> Image.Image:
         sl_price = parse_price(str(analysis['stop_loss']['price']))
         if sl_price:
             sl_y = estimate_price_y_position(sl_price, min_price, max_price, 
-                                            height, chart_top, height - chart_bottom)
+                                            height, chart_top, chart_bottom)
             
             logger.info(f"Drawing stop loss at price {sl_price}, Y position: {sl_y}")
             
@@ -399,7 +438,7 @@ def annotate_chart(image: Image.Image, analysis: Dict) -> Image.Image:
                 tp_price = parse_price(str(tp['price']))
                 if tp_price:
                     tp_y = estimate_price_y_position(tp_price, min_price, max_price, 
-                                                    height, chart_top, height - chart_bottom)
+                                                    height, chart_top, chart_bottom)
                     
                     logger.info(f"Drawing TP{idx+1} at price {tp_price}, Y position: {tp_y}")
                     
@@ -438,7 +477,7 @@ def annotate_chart(image: Image.Image, analysis: Dict) -> Image.Image:
                 support_price = parse_price(str(level['price']))
                 if support_price:
                     support_y = estimate_price_y_position(support_price, min_price, max_price, 
-                                                         height, chart_top, height - chart_bottom)
+                                                         height, chart_top, chart_bottom)
                     
                     logger.info(f"  → Support {idx+1}: {level['price']} ({support_price}) at Y={support_y}")
                     
@@ -473,7 +512,7 @@ def annotate_chart(image: Image.Image, analysis: Dict) -> Image.Image:
                 resistance_price = parse_price(str(level['price']))
                 if resistance_price:
                     resistance_y = estimate_price_y_position(resistance_price, min_price, max_price, 
-                                                            height, chart_top, height - chart_bottom)
+                                                            height, chart_top, chart_bottom)
                     
                     logger.info(f"  → Resistance {idx+1}: {level['price']} ({resistance_price}) at Y={resistance_y}")
                     

@@ -38,6 +38,25 @@ export default function AnnotatedChart({ result, onReset }: AnnotatedChartProps)
     <div className="annotated-chart-container">
       <div className="chart-header">
         <h2>ANALYSIS RESULTS</h2>
+        {result.metadata && (
+          <div className="analysis-metadata">
+            {result.metadata.asset_type && result.metadata.asset_type !== 'auto' && (
+              <span className="metadata-badge">
+                Asset: {result.metadata.asset_type.toUpperCase()}
+              </span>
+            )}
+            {result.metadata.trade_direction && (
+              <span className="metadata-badge">
+                Direction: {result.metadata.trade_direction.toUpperCase()}
+              </span>
+            )}
+            {result.metadata.timeframe && result.metadata.timeframe !== 'auto' && (
+              <span className="metadata-badge">
+                Timeframe: {result.metadata.timeframe.toUpperCase()}
+              </span>
+            )}
+          </div>
+        )}
         <button onClick={onReset} className="btn-secondary">
           ANALYZE ANOTHER CHART
         </button>

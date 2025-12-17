@@ -43,6 +43,11 @@ export interface AnalysisResult {
   raw_response?: string
   original_image?: string
   annotated_image?: string | null
+  metadata?: {
+    timeframe?: string
+    asset_type?: string
+    trade_direction?: string | null
+  }
 }
 
 function App() {

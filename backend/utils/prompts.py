@@ -3,41 +3,61 @@ Technical Analysis prompt templates for Gemini vision model.
 """
 from typing import Optional
 
-def get_ta_prompt(timeframe: Optional[str] = None) -> str:
+def get_ta_prompt(
+    timeframe: Optional[str] = None,
+    asset_type: Optional[str] = None,
+    trade_direction: Optional[str] = None
+) -> str:
     """
     Returns the main technical analysis prompt for chart analysis.
     
     Args:
         timeframe: Optional timeframe to include in the prompt (1m, 5m, 15m, 1h, 4h, 1d, 1w, 1M)
+        asset_type: Optional asset type (btc, sol, eth, alts, memecoin)
+        trade_direction: Optional trade direction ('long' or 'short')
     """
     timeframe_context = ""
     if timeframe and timeframe != "auto":
         timeframe_map = {
+            "1s": "1-second (ultra-scalping)",
+            "3s": "3-second (ultra-scalping)",
+            "5s": "5-second (ultra-scalping)",
+            "15s": "15-second (ultra-scalping)",
+            "30s": "30-second (ultra-scalping)",
             "1m": "1-minute (scalping)",
+            "3m": "3-minute (scalping)",
             "5m": "5-minute (short-term trading)",
             "15m": "15-minute (intraday trading)",
             "30m": "30-minute (intraday trading)",
             "1h": "1-hour (swing trading)",
+            "2h": "2-hour (swing trading)",
             "4h": "4-hour (swing trading)",
+            "12h": "12-hour (swing trading)",
             "1d": "daily (position trading)",
+            "3d": "3-day (position trading)",
             "1w": "weekly (long-term investing)",
             "1M": "monthly (long-term investing)"
         }
         tf_desc = timeframe_map.get(timeframe, timeframe)
         timeframe_context = f"\n\n**IMPORTANT: This chart is a {tf_desc} timeframe.** Adjust your analysis accordingly:\n"
-        if timeframe in ["1m", "5m", "15m"]:
+        if timeframe in ["1s", "3s", "5s", "15s", "30s"]:
+            timeframe_context += "- ULTRA-SHORT timeframe - extreme scalping, very quick entries/exits\n"
+            timeframe_context += "- Use VERY tight stop-losses (0.1-0.5%)\n"
+            timeframe_context += "- Focus on micro price action and order flow\n"
+            timeframe_context += "- High frequency trading approach - quick profits, quick exits\n"
+        elif timeframe in ["1m", "3m", "5m", "15m"]:
             timeframe_context += "- Focus on short-term price action and quick scalping opportunities\n"
             timeframe_context += "- Use tighter stop-losses (0.5-1%)\n"
             timeframe_context += "- Look for quick momentum plays and breakouts\n"
-        elif timeframe in ["30m", "1h"]:
+        elif timeframe in ["30m", "1h", "2h"]:
             timeframe_context += "- Balance between intraday and swing trading strategies\n"
             timeframe_context += "- Use moderate stop-losses (1-2%)\n"
             timeframe_context += "- Focus on trend continuation and key support/resistance\n"
-        elif timeframe == "4h":
+        elif timeframe in ["4h", "12h"]:
             timeframe_context += "- Focus on swing trading setups\n"
             timeframe_context += "- Use wider stop-losses (2-3%)\n"
             timeframe_context += "- Look for major trend reversals and continuation patterns\n"
-        elif timeframe == "1d":
+        elif timeframe in ["1d", "3d"]:
             timeframe_context += "- Focus on position trading and major trends\n"
             timeframe_context += "- Use wider stop-losses (3-5%)\n"
             timeframe_context += "- Prioritize major support/resistance and trend analysis\n"
@@ -46,8 +66,128 @@ def get_ta_prompt(timeframe: Optional[str] = None) -> str:
             timeframe_context += "- Use very wide stop-losses (5-10%)\n"
             timeframe_context += "- Analyze major market structure and long-term trends\n"
     
+    # Asset-specific context
+    asset_context = ""
+    if asset_type:
+        asset_context_map = {
+            "btc": """
+**BITCOIN (BTC) ANALYSIS - CRITICAL CONTEXT:**
+- BTC is the market leader and often sets the trend for the entire crypto market
+- Focus on major institutional support/resistance levels (BTC has strong institutional accumulation zones)
+- Key psychological levels: 10K, 20K, 30K, 50K, 100K, 150K
+- Higher liquidity = tighter spreads, better order fills, less slippage
+- Volatility typically lower than alts, but can spike during major events (halvings, ETF news, regulatory announcements)
+- Strong correlation with macro trends (inflation, interest rates, stock market)
+- Consider BTC dominance trends - when BTC dominance rises, alts often fall
+- Major support/resistance levels are often respected due to institutional buying/selling
+- Use slightly wider stops than alts (1.5-2x) due to potential for larger moves
+- Watch for volume spikes at key levels - institutional accumulation/distribution
+""",
+            "sol": """
+**SOLANA (SOL) ANALYSIS - CRITICAL CONTEXT:**
+- Higher volatility than BTC/ETH - can move 10-20%+ in a single day
+- Strong correlation with DeFi and NFT ecosystem trends
+- Key psychological levels: 50, 100, 150, 200, 300
+- Watch for ecosystem news (airdrops, new protocols, network upgrades, validator issues)
+- Faster price movements require tighter stop-losses and quicker decision-making
+- More sensitive to market sentiment than BTC - can pump/dump harder
+- Consider SOL ecosystem health (TVL, active users, new projects)
+- Network outages or congestion can cause price drops
+- Use moderate stops (1-2% for swing, 0.5-1% for scalping)
+- Watch for correlation with meme coins (many are on Solana)
+""",
+            "eth": """
+**ETHEREUM (ETH) ANALYSIS - CRITICAL CONTEXT:**
+- Second-largest market cap, high liquidity, institutional interest
+- Influenced by DeFi trends, staking yields, and network upgrade narratives
+- Key psychological levels: 1000, 2000, 3000, 4000, 5000
+- Gas fee trends can affect price (high fees = less usage = potential price pressure)
+- More stable than alts, less stable than BTC
+- Watch for staking/unstaking trends (affects supply dynamics)
+- Consider ETH/BTC ratio for relative strength analysis
+- Network upgrades (EIPs, hard forks) can cause volatility
+- Use moderate stops (1-2% for swing, 0.5-1% for scalping)
+- Strong correlation with DeFi TVL and NFT market health
+""",
+            "alts": """
+**ALTCOIN ANALYSIS - CRITICAL CONTEXT:**
+- HIGHER VOLATILITY AND RISK than BTC/ETH - can move 20-50%+ in a single day
+- Strong correlation with BTC trends - alts often follow BTC direction
+- Look for breakout patterns and momentum plays
+- Wider stop-losses recommended (2-3% for swing, 1-2% for scalping)
+- Consider market cap and liquidity - low-cap coins = higher risk
+- Watch for news, partnerships, exchange listings, and development updates
+- Alt season vs BTC dominance - when BTC dominance falls, alts often pump
+- Use smaller position sizes due to higher risk
+- Many alts are more sensitive to social media sentiment
+- Consider tokenomics (supply, vesting schedules, unlocks)
+- Watch for correlation with sector trends (DeFi, gaming, AI, etc.)
+""",
+            "memecoin": """
+**MEMECOIN ANALYSIS - CRITICAL CONTEXT:**
+- EXTREME VOLATILITY - HIGH RISK, HIGH REWARD
+- Can move 50-100%+ in hours or even minutes
+- VERY sensitive to social media, influencers, and hype cycles
+- Use MUCH wider stops (5-10%) or consider smaller position sizes
+- Strong momentum plays - quick entries/exits are essential
+- HIGH RISK of sudden reversals - "rug pulls" and coordinated dumps are common
+- Consider taking profits quickly - don't get greedy
+- Watch for volume spikes and social media buzz
+- Many memecoins have low liquidity - beware of slippage
+- Use only risk capital you can afford to lose completely
+- Pattern recognition is less reliable - sentiment-driven moves
+- Watch for correlation with major memecoins (DOGE, SHIB, PEPE, etc.)
+- Consider market cap - micro-cap memes = extreme risk
+- Set alerts for rapid price movements
+"""
+        }
+        asset_context = asset_context_map.get(asset_type.lower(), "")
+    
+    # Trade direction context
+    direction_context = ""
+    if trade_direction:
+        if trade_direction.lower() == "long":
+            direction_context = """
+**TRADE DIRECTION: LONG (BULLISH BIAS) - FOCUS YOUR ANALYSIS:**
+- Prioritize BUY/ENTRY opportunities and bullish setups
+- Identify support levels for optimal entry points
+- Look for bullish patterns: cup & handle, ascending triangles, bullish flags, double bottoms, inverse head & shoulders
+- Set stop-losses BELOW key support levels
+- Target resistance levels for take-profit zones
+- Emphasize upward momentum, higher highs, higher lows
+- Look for bullish candlestick patterns (hammers, bullish engulfing, morning stars)
+- Consider entry on pullbacks to support rather than chasing breakouts
+- Watch for volume confirmation on upward moves
+- If chart shows bearish signals, note the conflict but focus on potential bullish reversals
+"""
+        elif trade_direction.lower() == "short":
+            direction_context = """
+**TRADE DIRECTION: SHORT (BEARISH BIAS) - FOCUS YOUR ANALYSIS:**
+- Prioritize SELL/SHORT opportunities and bearish setups
+- Identify resistance levels for optimal entry points
+- Look for bearish patterns: head & shoulders, descending triangles, bearish flags, double tops, rising wedges
+- Set stop-losses ABOVE key resistance levels
+- Target support levels for take-profit zones
+- Emphasize downward momentum, lower highs, lower lows
+- Look for bearish candlestick patterns (shooting stars, bearish engulfing, evening stars)
+- Consider entry on bounces to resistance rather than chasing breakdowns
+- Watch for volume confirmation on downward moves
+- If chart shows bullish signals, note the conflict but focus on potential bearish reversals
+"""
+        elif trade_direction.lower() == "both":
+            direction_context = """
+**TRADE DIRECTION: BOTH (LONG & SHORT) - ANALYZE BOTH DIRECTIONS:**
+- Analyze BOTH bullish and bearish opportunities equally
+- Identify support levels for LONG entries AND resistance levels for SHORT entries
+- Look for both bullish patterns (cup & handle, ascending triangles) AND bearish patterns (head & shoulders, descending triangles)
+- Provide entry points for both directions with appropriate stop-losses
+- Show take-profit targets for both long and short setups
+- Assess which direction has stronger signals and higher probability
+- Consider market context - is this a trending or ranging market?
+"""
+    
     # Build prompt with proper string formatting
-    prompt_text = f"""You are an elite technical analyst with 20+ years of experience analyzing trading charts across all timeframes and markets.{timeframe_context}
+    prompt_text = f"""You are an elite technical analyst with 20+ years of experience analyzing trading charts across all timeframes and markets.{timeframe_context}{asset_context}{direction_context}
 
 **CRITICAL: Analyze this trading chart screenshot with EXTREME precision and provide PROFESSIONAL-GRADE trading insights.**
 

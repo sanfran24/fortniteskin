@@ -25,6 +25,9 @@ export default function UploadChart({
   const [isDragging, setIsDragging] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
   const [timeframe, setTimeframe] = useState<string>('auto')
+  const [assetType, setAssetType] = useState<string>('auto')
+  const [tradeDirectionLong, setTradeDirectionLong] = useState<boolean>(false)
+  const [tradeDirectionShort, setTradeDirectionShort] = useState<boolean>(false)
 
   const handleFile = async (file: File) => {
     console.log('File selected:', file.name, file.type, file.size)
@@ -67,8 +70,20 @@ export default function UploadChart({
     const formData = new FormData()
     formData.append('file', file)
     formData.append('timeframe', timeframe)
+    formData.append('asset_type', assetType)
+    // Only send trade direction if at least one is selected
+    if (tradeDirectionLong && tradeDirectionShort) {
+      // Both selected - send "both" or null (backend handles null as both)
+      formData.append('trade_direction', 'both')
+    } else if (tradeDirectionLong) {
+      formData.append('trade_direction', 'long')
+    } else if (tradeDirectionShort) {
+      formData.append('trade_direction', 'short')
+    }
+    // If neither is selected, don't send trade_direction (backend defaults to analyzing both)
 
-    console.log('Sending request to:', `${API_URL}/analyze`, 'with timeframe:', timeframe)
+    const direction = tradeDirectionLong && tradeDirectionShort ? 'both' : tradeDirectionLong ? 'long' : tradeDirectionShort ? 'short' : null
+    console.log('Sending request to:', `${API_URL}/analyze`, 'with timeframe:', timeframe, 'asset_type:', assetType, 'trade_direction:', direction)
     console.log('File details:', { name: file.name, type: file.type, size: file.size })
 
     try {
@@ -120,7 +135,7 @@ export default function UploadChart({
       console.error('Upload error:', err)
       if (err instanceof TypeError) {
         if (err.message.includes('fetch') || err.message.includes('Failed to fetch')) {
-          onError('Failed to connect to server. Make sure the backend is running on http://localhost:8000')
+          onError(`Failed to connect to backend server at ${API_URL}. Please check if the backend is running.`)
         } else {
           onError(`Network error: ${err.message}`)
         }
@@ -142,7 +157,7 @@ export default function UploadChart({
         handleFile(file)
       }
     },
-    []
+    [timeframe, assetType, tradeDirectionLong, tradeDirectionShort]
   )
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -192,16 +207,78 @@ export default function UploadChart({
                 className="timeframe-select"
               >
                 <option value="auto">Auto-detect (Recommended)</option>
-                <option value="1m">1 Minute</option>
-                <option value="5m">5 Minutes</option>
-                <option value="15m">15 Minutes</option>
-                <option value="30m">30 Minutes</option>
-                <option value="1h">1 Hour</option>
-                <option value="4h">4 Hours</option>
-                <option value="1d">Daily</option>
-                <option value="1w">Weekly</option>
-                <option value="1M">Monthly</option>
+                <optgroup label="SECONDS">
+                  <option value="1s">1 Second</option>
+                  <option value="3s">3 Seconds</option>
+                  <option value="5s">5 Seconds</option>
+                  <option value="15s">15 Seconds</option>
+                  <option value="30s">30 Seconds</option>
+                </optgroup>
+                <optgroup label="MINUTES">
+                  <option value="1m">1 Minute</option>
+                  <option value="3m">3 Minutes</option>
+                  <option value="5m">5 Minutes</option>
+                  <option value="15m">15 Minutes</option>
+                  <option value="30m">30 Minutes</option>
+                </optgroup>
+                <optgroup label="HOURS">
+                  <option value="1h">1 Hour</option>
+                  <option value="2h">2 Hours</option>
+                  <option value="4h">4 Hours</option>
+                  <option value="12h">12 Hours</option>
+                </optgroup>
+                <optgroup label="DAYS">
+                  <option value="1d">1 Day</option>
+                  <option value="3d">3 Days</option>
+                  <option value="1w">1 Week</option>
+                  <option value="1M">1 Month</option>
+                </optgroup>
               </select>
+            </div>
+
+            <div className="asset-type-selector">
+              <label htmlFor="asset-type-select" className="asset-type-label">
+                Asset Type:
+              </label>
+              <select
+                id="asset-type-select"
+                value={assetType}
+                onChange={(e) => setAssetType(e.target.value)}
+                className="asset-type-select"
+              >
+                <option value="auto">Auto-detect</option>
+                <option value="btc">Bitcoin (BTC)</option>
+                <option value="sol">Solana (SOL)</option>
+                <option value="eth">Ethereum (ETH)</option>
+                <option value="alts">Altcoins</option>
+                <option value="memecoin">Memecoin</option>
+              </select>
+            </div>
+
+            <div className="trade-direction-selector">
+              <label className="trade-direction-label">
+                Trade Direction (Optional - Select None, One, or Both):
+              </label>
+              <div className="direction-checkboxes">
+                <label className={`direction-checkbox-label ${tradeDirectionLong ? 'checked' : ''}`}>
+                  <input
+                    type="checkbox"
+                    checked={tradeDirectionLong}
+                    onChange={(e) => setTradeDirectionLong(e.target.checked)}
+                    className="direction-checkbox"
+                  />
+                  <span className="direction-checkbox-text">📈 LONG</span>
+                </label>
+                <label className={`direction-checkbox-label ${tradeDirectionShort ? 'checked' : ''}`}>
+                  <input
+                    type="checkbox"
+                    checked={tradeDirectionShort}
+                    onChange={(e) => setTradeDirectionShort(e.target.checked)}
+                    className="direction-checkbox"
+                  />
+                  <span className="direction-checkbox-text">📉 SHORT</span>
+                </label>
+              </div>
             </div>
             
             <input

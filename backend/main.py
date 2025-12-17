@@ -41,30 +41,33 @@ def get_image_hash(image_bytes: bytes) -> str:
     """Generate a hash of the image bytes for caching"""
     return hashlib.sha256(image_bytes).hexdigest()
 
-def get_cache_path(image_hash: str, timeframe: str) -> Path:
-    """Get the cache file path for a given image hash and timeframe"""
-    return CACHE_DIR / f"{image_hash}_{timeframe}.json"
+def get_cache_path(image_hash: str, timeframe: str, asset_type: str, trade_direction: Optional[str] = None) -> Path:
+    """Get the cache file path for a given image hash and parameters"""
+    params = f"{timeframe}_{asset_type}"
+    if trade_direction:
+        params += f"_{trade_direction}"
+    return CACHE_DIR / f"{image_hash}_{params}.json"
 
-def load_from_cache(image_hash: str, timeframe: str) -> Optional[dict]:
+def load_from_cache(image_hash: str, timeframe: str, asset_type: str, trade_direction: Optional[str] = None) -> Optional[dict]:
     """Load analysis result from cache if it exists"""
-    cache_path = get_cache_path(image_hash, timeframe)
+    cache_path = get_cache_path(image_hash, timeframe, asset_type, trade_direction)
     if cache_path.exists():
         try:
             with open(cache_path, 'r') as f:
                 cached_data = json.load(f)
-                logger.info(f"Cache hit for image hash: {image_hash[:16]}... (timeframe: {timeframe})")
+                logger.info(f"Cache hit for image hash: {image_hash[:16]}... (timeframe: {timeframe}, asset: {asset_type}, direction: {trade_direction})")
                 return cached_data
         except Exception as e:
             logger.warning(f"Failed to load cache: {e}")
     return None
 
-def save_to_cache(image_hash: str, timeframe: str, result: dict):
+def save_to_cache(image_hash: str, timeframe: str, asset_type: str, trade_direction: Optional[str], result: dict):
     """Save analysis result to cache"""
     try:
-        cache_path = get_cache_path(image_hash, timeframe)
+        cache_path = get_cache_path(image_hash, timeframe, asset_type, trade_direction)
         with open(cache_path, 'w') as f:
             json.dump(result, f, indent=2)
-        logger.info(f"Cached result for image hash: {image_hash[:16]}... (timeframe: {timeframe})")
+        logger.info(f"Cached result for image hash: {image_hash[:16]}... (timeframe: {timeframe}, asset: {asset_type}, direction: {trade_direction})")
     except Exception as e:
         logger.warning(f"Failed to save cache: {e}")
 
@@ -138,7 +141,9 @@ async def analyze_options():
 @app.post("/analyze")
 async def analyze_chart(
     file: UploadFile = File(...),
-    timeframe: str = Form(default="auto")
+    timeframe: str = Form(default="auto"),
+    asset_type: str = Form(default="auto"),
+    trade_direction: Optional[str] = Form(default=None)
 ):
     """
     Analyze a trading chart screenshot using Gemini vision model.
@@ -152,9 +157,11 @@ async def analyze_chart(
     Args:
         file: Chart image file
         timeframe: Timeframe (1m, 5m, 15m, 30m, 1h, 4h, 1d, 1w, 1M, or 'auto')
+        asset_type: Asset type (btc, sol, eth, alts, memecoin, or 'auto')
+        trade_direction: Trade direction ('long', 'short', or None for both)
     """
     request_id = f"{file.filename}_{id(file)}"
-    logger.info(f"[{request_id}] Received upload request: {file.filename}, content_type: {file.content_type}, timeframe: {timeframe}")
+    logger.info(f"[{request_id}] Received upload request: {file.filename}, content_type: {file.content_type}, timeframe: {timeframe}, asset_type: {asset_type}, trade_direction: {trade_direction}")
     
     try:
         # Read image bytes first
@@ -165,7 +172,7 @@ async def analyze_chart(
         logger.info(f"[{request_id}] Image hash: {image_hash[:16]}...")
         
         # Check cache first
-        cached_result = load_from_cache(image_hash, timeframe)
+        cached_result = load_from_cache(image_hash, timeframe, asset_type, trade_direction)
         if cached_result:
             logger.info(f"[{request_id}] Returning cached result")
             return JSONResponse(content=cached_result)
@@ -226,9 +233,13 @@ async def analyze_chart(
             if not any(mime in file.content_type.lower() for mime in ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp']):
                 logger.warning(f"[{request_id}] Unusual content type: {file.content_type}, but image opened successfully")
         
-        # Get TA prompt with timeframe context
-        prompt = get_ta_prompt(timeframe=timeframe if timeframe != "auto" else None)
-        logger.info(f"[{request_id}] Sending request to Gemini API with timeframe: {timeframe}...")
+        # Get TA prompt with timeframe, asset type, and trade direction context
+        prompt = get_ta_prompt(
+            timeframe=timeframe if timeframe != "auto" else None,
+            asset_type=asset_type if asset_type != "auto" else None,
+            trade_direction=trade_direction
+        )
+        logger.info(f"[{request_id}] Sending request to Gemini API with timeframe: {timeframe}, asset_type: {asset_type}, trade_direction: {trade_direction}...")
         
         # Call Gemini API in thread pool to avoid blocking event loop
         def call_gemini_api(prompt_text, img, req_id):
@@ -430,11 +441,16 @@ async def analyze_chart(
                 "analysis": json_data,
                 "raw_response": analysis_text,
                 "original_image": f"data:image/png;base64,{img_base64}",
-                "annotated_image": f"data:image/png;base64,{annotated_base64}" if annotated_base64 else None
+                "annotated_image": f"data:image/png;base64,{annotated_base64}" if annotated_base64 else None,
+                "metadata": {
+                    "timeframe": timeframe,
+                    "asset_type": asset_type,
+                    "trade_direction": trade_direction
+                }
             }
             
             # Save to cache for future requests
-            save_to_cache(image_hash, timeframe, response_data)
+            save_to_cache(image_hash, timeframe, asset_type, trade_direction, response_data)
             
             logger.info("Analysis complete, returning results")
             return JSONResponse(
