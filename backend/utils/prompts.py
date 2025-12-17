@@ -206,10 +206,12 @@ def get_ta_prompt(
    - Determine the timeframe (1m, 5m, 15m, 1h, 4h, daily, weekly, etc.) - read EXACTLY from chart labels/title
    - Note the current price level - read EXACT value from the rightmost candle/bar or current price indicator
    - **CRITICAL**: Read the MINIMUM and MAXIMUM prices visible on the chart's price axis (left/right side)
-     * Look at the price scale/axis labels
-     * Note the lowest price label visible (e.g., "0.5M", "500K", "50000")
-     * Note the highest price label visible (e.g., "2M", "2000K", "200000")
+     * Look at the price scale/axis labels on the RIGHT side of the chart (most charts use right side)
+     * Note the LOWEST price label visible at the BOTTOM of the price axis (e.g., "-1M", "0.5M", "500K", "50000")
+     * Note the HIGHEST price label visible at the TOP of the price axis (e.g., "2.2M", "2M", "2000K", "200000")
+     * Read these EXACTLY as shown - include negative signs if present (e.g., "-1M")
      * Include these in your analysis as "chart_min_price" and "chart_max_price"
+     * **VERIFY**: The chart_min_price should be the bottom-most label, chart_max_price should be the top-most label
    - Identify the chart type (candlestick, line, bar, etc.) - observe the visual representation
    - **CRITICAL**: Double-check all values by reading directly from chart labels - do not estimate or round
 

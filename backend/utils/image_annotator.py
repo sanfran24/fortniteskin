@@ -47,18 +47,23 @@ def estimate_price_y_position(price: float, min_price: float, max_price: float,
     # Normalize price to 0-1 range (inverted because Y=0 is top)
     # Higher prices = lower Y position (top of chart)
     # Lower prices = higher Y position (bottom of chart)
+    # Formula: normalized = (max_price - price) / (max_price - min_price)
     normalized = (max_price - clamped_price) / price_range
     
     # Ensure normalized is between 0 and 1
     normalized = max(0.0, min(1.0, normalized))
     
     # Convert to pixel position within chart area
-    y_pos = chart_top + int(normalized * chart_height)
+    # Use precise calculation: chart_top + (normalized * chart_height)
+    y_pos = chart_top + (normalized * chart_height)
+    
+    # Round to nearest integer for pixel position
+    y_pos = round(y_pos)
     
     # Clamp to chart bounds
-    final_y = max(chart_top, min(y_pos, chart_bottom))
+    final_y = max(chart_top, min(int(y_pos), chart_bottom))
     
-    logger.debug(f"📍 Price {price:,.2f} -> Y={final_y} (normalized={normalized:.4f}, chart_height={chart_height}, range={min_price:,.2f}-{max_price:,.2f})")
+    logger.info(f"📍 Price {price:,.2f} -> Y={final_y}px (normalized={normalized:.4f}, chart_height={chart_height}px, range={min_price:,.2f}-{max_price:,.2f})")
     
     return final_y
 
@@ -344,15 +349,19 @@ def annotate_chart(image: Image.Image, analysis: Dict) -> Image.Image:
     # Charts typically have price axis on left/right, so leave more margin
     chart_left = int(width * 0.08)  # 8% margin for price axis
     chart_right = int(width * 0.95)  # 5% margin
-    chart_top_margin = int(height * 0.10)  # 10% margin for top labels/header
-    chart_bottom_margin = int(height * 0.10)  # 10% margin for bottom labels
+    
+    # More accurate chart area detection - account for headers and volume bars
+    # Many charts have headers at top (10-15%) and volume bars at bottom (15-20%)
+    chart_top_margin = int(height * 0.12)  # 12% margin for top labels/header
+    chart_bottom_margin = int(height * 0.15)  # 15% margin for bottom labels/volume bars
     chart_top = chart_top_margin  # Top of chart area (pixels from top)
     chart_bottom = height - chart_bottom_margin  # Bottom of chart area (pixels from top)
     chart_height = chart_bottom - chart_top  # Actual chart height
     
-    logger.info(f"Annotating chart: {width}x{height}, chart area: {chart_left}-{chart_right}, {chart_top}-{chart_bottom} (height: {chart_height})")
-    logger.info(f"Price range: {min_price:,.2f} - {max_price:,.2f} (range: {max_price - min_price:,.2f})")
-    logger.info(f"Has entry: {bool(analysis.get('entry'))}, Has SL: {bool(analysis.get('stop_loss'))}, Has TPs: {bool(analysis.get('take_profits'))}")
+    logger.info(f"📐 Chart dimensions: {width}x{height}px")
+    logger.info(f"📊 Chart area: X={chart_left}-{chart_right}px, Y={chart_top}-{chart_bottom}px (height: {chart_height}px)")
+    logger.info(f"💰 Price range: {min_price:,.2f} - {max_price:,.2f} (range: {max_price - min_price:,.2f})")
+    logger.info(f"📈 Chart elements: Entry={bool(analysis.get('entry'))}, SL={bool(analysis.get('stop_loss'))}, TPs={len(analysis.get('take_profits', []))}")
     
     # Get font
     try:
