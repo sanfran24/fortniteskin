@@ -5,6 +5,7 @@ from PIL import Image, ImageDraw, ImageFont
 import math
 from typing import Dict, List, Optional, Tuple
 import logging
+import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -14,24 +15,41 @@ def estimate_price_y_position(price: float, min_price: float, max_price: float,
                               chart_bottom: int = 50) -> int:
     """
     Estimate Y pixel position for a price level on the chart.
+    Uses linear interpolation with improved accuracy.
     """
     chart_height = image_height - chart_top - chart_bottom
     price_range = max_price - min_price
     
-    if price_range == 0:
+    if price_range == 0 or price_range < 0:
+        logger.warning(f"⚠️ Invalid price range: {min_price} - {max_price}, using center")
         return image_height // 2
     
+    # Clamp price to valid range to avoid out-of-bounds
+    clamped_price = max(min_price, min(price, max_price))
+    if clamped_price != price:
+        logger.warning(f"⚠️ Price {price} clamped to range [{min_price}, {max_price}] -> {clamped_price}")
+    
     # Normalize price to 0-1 range (inverted because Y=0 is top)
-    normalized = (max_price - price) / price_range
+    # Higher prices = lower Y position (top of chart)
+    # Lower prices = higher Y position (bottom of chart)
+    normalized = (max_price - clamped_price) / price_range
+    
+    # Ensure normalized is between 0 and 1
+    normalized = max(0.0, min(1.0, normalized))
     
     # Convert to pixel position
     y_pos = chart_top + int(normalized * chart_height)
     
-    return max(chart_top, min(y_pos, image_height - chart_bottom))
+    # Clamp to chart bounds
+    final_y = max(chart_top, min(y_pos, image_height - chart_bottom))
+    
+    logger.debug(f"📍 Price {price} -> Y={final_y} (normalized={normalized:.3f}, chart_height={chart_height}, range={min_price}-{max_price})")
+    
+    return final_y
 
 
 def parse_price(price_str: str) -> Optional[float]:
-    """Parse price string to float, handling common formats including K notation."""
+    """Parse price string to float, handling common formats including K/M notation."""
     if not price_str:
         return None
     
@@ -39,67 +57,133 @@ def parse_price(price_str: str) -> Optional[float]:
         # Remove common characters and convert to string
         cleaned = str(price_str).replace('$', '').replace(',', '').replace(' ', '').strip().upper()
         
-        # Handle K notation (e.g., 300K = 300000)
+        # Handle various notation formats
         multiplier = 1
-        if cleaned.endswith('K'):
+        
+        # Check for "MILLION" or "MILL" text
+        if 'MILLION' in cleaned or 'MILL' in cleaned:
+            cleaned = cleaned.replace('MILLION', '').replace('MILL', '')
+            multiplier = 1000000
+        # Check for "THOUSAND" or "K" notation
+        elif cleaned.endswith('K') or 'THOUSAND' in cleaned:
+            if cleaned.endswith('K'):
+                cleaned = cleaned[:-1]
+            else:
+                cleaned = cleaned.replace('THOUSAND', '')
             multiplier = 1000
-            cleaned = cleaned[:-1]
+        # Check for "M" notation (million)
         elif cleaned.endswith('M'):
             multiplier = 1000000
             cleaned = cleaned[:-1]
+        # Check for "B" notation (billion)
+        elif cleaned.endswith('B'):
+            multiplier = 1000000000
+            cleaned = cleaned[:-1]
         
-        return float(cleaned) * multiplier
-    except (ValueError, AttributeError):
+        # Handle decimal numbers (e.g., "1.5M" = 1.5 * 1000000 = 1500000)
+        price_value = float(cleaned)
+        result = price_value * multiplier
+        
+        logger.debug(f"Parsed price '{price_str}' -> {price_value} * {multiplier} = {result}")
+        return result
+    except (ValueError, AttributeError) as e:
+        logger.warning(f"Failed to parse price '{price_str}': {e}")
         return None
 
 
 def get_price_range(analysis: Dict) -> Tuple[float, float]:
-    """Estimate price range from analysis data."""
-    prices = []
+    """Estimate price range from analysis data with improved accuracy.
     
-    # Collect all price values
+    Priority:
+    1. Use chart_min_price/chart_max_price if provided (most accurate)
+    2. Use min/max of all prices in analysis
+    3. Fallback to defaults
+    """
+    prices = []
+    price_strings = []  # Keep original strings for debugging
+    
+    # FIRST PRIORITY: Use chart's visible price range if provided (most accurate)
+    chart_min = analysis.get('chart_min_price')
+    chart_max = analysis.get('chart_max_price')
+    
+    if chart_min and chart_max:
+        parsed_min = parse_price(str(chart_min))
+        parsed_max = parse_price(str(chart_max))
+        if parsed_min is not None and parsed_max is not None and parsed_min < parsed_max:
+            logger.info(f"✅ Using chart's visible price range: {parsed_min:,.2f} - {parsed_max:,.2f}")
+            return parsed_min, parsed_max
+        else:
+            logger.warning(f"⚠️ Invalid chart price range: {chart_min} - {chart_max}, falling back to analysis prices")
+    
+    # SECOND PRIORITY: Collect all price values from analysis
+    def add_price(price_str, source=""):
+        if price_str:
+            parsed = parse_price(str(price_str))
+            if parsed is not None:
+                prices.append(parsed)
+                price_strings.append(f"{price_str} ({source}) -> {parsed}")
+    
     if analysis.get('current_price'):
-        prices.append(parse_price(str(analysis['current_price'])))
+        add_price(analysis['current_price'], 'current_price')
     
     if analysis.get('entry') and analysis['entry'].get('price'):
-        prices.append(parse_price(str(analysis['entry']['price'])))
+        add_price(analysis['entry']['price'], 'entry')
     
     if analysis.get('stop_loss') and analysis['stop_loss'].get('price'):
-        prices.append(parse_price(str(analysis['stop_loss']['price'])))
+        add_price(analysis['stop_loss']['price'], 'stop_loss')
     
     if analysis.get('take_profits'):
         for tp in analysis['take_profits']:
             if tp.get('price'):
-                prices.append(parse_price(str(tp['price'])))
+                add_price(tp['price'], 'take_profit')
     
     if analysis.get('support_levels'):
         for level in analysis['support_levels']:
             if level.get('price'):
-                prices.append(parse_price(str(level['price'])))
+                add_price(level['price'], 'support')
     
     if analysis.get('resistance_levels'):
         for level in analysis['resistance_levels']:
             if level.get('price'):
-                prices.append(parse_price(str(level['price'])))
+                add_price(level['price'], 'resistance')
     
-    # Filter out None values
-    prices = [p for p in prices if p is not None]
+    logger.info(f"📊 Collected {len(prices)} prices: {price_strings[:10]}")
     
     if len(prices) < 2:
         # Default range if we can't determine
         if prices:
             base = prices[0]
-            return base * 0.9, base * 1.1
+            # Use wider range for single price
+            range_pct = 0.2  # 20% above and below
+            logger.warning(f"⚠️ Only one price found ({base}), using range: {base * (1 - range_pct)} - {base * (1 + range_pct)}")
+            return base * (1 - range_pct), base * (1 + range_pct)
+        logger.warning("⚠️ No prices found, using default range 0-100")
         return 0, 100
     
     min_price = min(prices)
     max_price = max(prices)
     
-    # Add padding
+    # Add padding - use percentage-based padding for better accuracy
     price_range = max_price - min_price
-    padding = max(price_range * 0.1, (max_price - min_price) * 0.05)  # At least 5% padding
     
-    return min_price - padding, max_price + padding
+    # For large price ranges (like millions), use smaller percentage padding
+    # For small ranges, use larger percentage padding
+    if price_range > 1000000:  # Millions range
+        padding_pct = 0.05  # 5% padding
+    elif price_range > 1000:  # Thousands range
+        padding_pct = 0.1  # 10% padding
+    else:  # Small numbers
+        padding_pct = 0.15  # 15% padding
+    
+    padding = price_range * padding_pct
+    
+    result_min = min_price - padding
+    result_max = max_price + padding
+    
+    logger.info(f"💰 Price range: {min_price} - {max_price} (range: {price_range})")
+    logger.info(f"📏 With {padding_pct*100}% padding: {result_min} - {result_max}")
+    
+    return result_min, result_max
 
 
 def draw_arrow(draw: ImageDraw.Draw, x: int, y: int, direction: str = 'up', 
@@ -195,16 +279,38 @@ def annotate_chart(image: Image.Image, analysis: Dict) -> Image.Image:
     # Try to get price range
     try:
         min_price, max_price = get_price_range(analysis)
-        logger.info(f"Price range determined: {min_price} - {max_price}")
+        logger.info(f"✅ Price range determined: {min_price:,.2f} - {max_price:,.2f}")
+        
+        # Validate price range
+        if min_price >= max_price:
+            logger.error(f"❌ Invalid price range: {min_price} >= {max_price}")
+            # Try to fix by using a percentage range around the prices
+            all_prices = []
+            for key in ['current_price', 'entry', 'stop_loss']:
+                if analysis.get(key) and isinstance(analysis[key], dict) and analysis[key].get('price'):
+                    p = parse_price(str(analysis[key]['price']))
+                    if p: all_prices.append(p)
+            if analysis.get('take_profits'):
+                for tp in analysis['take_profits']:
+                    p = parse_price(str(tp.get('price', '')))
+                    if p: all_prices.append(p)
+            if all_prices:
+                avg_price = sum(all_prices) / len(all_prices)
+                min_price = avg_price * 0.8
+                max_price = avg_price * 1.2
+                logger.warning(f"⚠️ Fixed range using average: {min_price:,.2f} - {max_price:,.2f}")
+            else:
+                min_price, max_price = 0, 100
     except Exception as e:
-        logger.warning(f"Could not determine price range: {e}, using defaults")
+        logger.error(f"❌ Could not determine price range: {e}\n{traceback.format_exc()}")
         min_price, max_price = 0, 100
     
-    # Estimate chart area (use most of the image)
-    chart_left = int(width * 0.05)  # 5% margin
-    chart_right = int(width * 0.98)  # 2% margin
-    chart_top = int(height * 0.05)  # 5% margin
-    chart_bottom = int(height * 0.95)  # 5% margin
+    # Estimate chart area (use most of the image, but be more conservative)
+    # Charts typically have price axis on left/right, so leave more margin
+    chart_left = int(width * 0.08)  # 8% margin for price axis
+    chart_right = int(width * 0.95)  # 5% margin
+    chart_top = int(height * 0.08)  # 8% margin for top labels
+    chart_bottom = int(height * 0.92)  # 8% margin for bottom
     
     logger.info(f"Annotating chart: {width}x{height}, chart area: {chart_left}-{chart_right}, {chart_top}-{chart_bottom}")
     logger.info(f"Has entry: {bool(analysis.get('entry'))}, Has SL: {bool(analysis.get('stop_loss'))}, Has TPs: {bool(analysis.get('take_profits'))}")

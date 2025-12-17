@@ -65,6 +65,11 @@ def get_ta_prompt(timeframe: Optional[str] = None) -> str:
    - Identify the asset/symbol (if visible) - read EXACTLY as shown (e.g., "BTC/USDT", "AAPL", "EUR/USD")
    - Determine the timeframe (1m, 5m, 15m, 1h, 4h, daily, weekly, etc.) - read EXACTLY from chart labels/title
    - Note the current price level - read EXACT value from the rightmost candle/bar or current price indicator
+   - **CRITICAL**: Read the MINIMUM and MAXIMUM prices visible on the chart's price axis (left/right side)
+     * Look at the price scale/axis labels
+     * Note the lowest price label visible (e.g., "0.5M", "500K", "50000")
+     * Note the highest price label visible (e.g., "2M", "2000K", "200000")
+     * Include these in your analysis as "chart_min_price" and "chart_max_price"
    - Identify the chart type (candlestick, line, bar, etc.) - observe the visual representation
    - **CRITICAL**: Double-check all values by reading directly from chart labels - do not estimate or round
 
@@ -124,6 +129,8 @@ Provide your analysis in the following JSON format:
   "timeframe": "detected timeframe",
   "asset": "symbol if visible, else 'unknown'",
   "current_price": "current price level",
+  "chart_min_price": "lowest price visible on chart axis",
+  "chart_max_price": "highest price visible on chart axis",
   "support_levels": [
     {{"price": "level", "strength": "strong|moderate|weak", "reason": "brief explanation"}}
   ],
