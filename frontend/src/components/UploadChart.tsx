@@ -9,7 +9,13 @@ interface UploadChartProps {
 }
 
 // @ts-ignore - Vite env types
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+// In production, this will use VITE_API_URL from .env.production
+// Defaults to Render backend URL for production, localhost for development
+const API_URL = import.meta.env.VITE_API_URL || (
+  import.meta.env.PROD 
+    ? 'https://nano-banana-ta-backend.onrender.com' 
+    : 'http://localhost:8000'
+)
 
 export default function UploadChart({
   onAnalysisStart,
