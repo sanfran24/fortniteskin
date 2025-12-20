@@ -2,55 +2,50 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Impact', 'Arial Black', 'Franklin Gothic Heavy', 'Arial Bold', 'Helvetica Bold', sans-serif;
-  font-weight: 900;
 }
 
+@import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+
 :root {
-  /* Cow Skin Theme Colors */
-  --cow-black: #1a1a1a;
-  --cow-white: #f5f5f5;
-  --cow-brown: #8b6f47;
-  --cow-tan: #d4a574;
-  --cow-dark-brown: #5d4037;
-  --cow-patch-black: #000000;
-  --cow-patch-white: #ffffff;
-  --cow-text-black: #000000;
-  --cow-text-white: #ffffff;
-  --cow-text-gray: #333333;
-  --cow-border-black: #000000;
-  --cow-border-brown: #8b6f47;
-  --text-outline: 3px 3px 6px rgba(255, 255, 255, 1), -3px -3px 6px rgba(255, 255, 255, 1), 3px -3px 6px rgba(255, 255, 255, 1), -3px 3px 6px rgba(255, 255, 255, 1), 0 0 10px rgba(255, 255, 255, 0.9);
-  --text-outline-dark: 3px 3px 6px rgba(0, 0, 0, 1), -3px -3px 6px rgba(0, 0, 0, 1), 3px -3px 6px rgba(0, 0, 0, 1), -3px 3px 6px rgba(0, 0, 0, 1), 0 0 10px rgba(0, 0, 0, 0.9);
+  /* Fortnite Color Palette */
+  --fortnite-blue: #00d4ff;
+  --fortnite-purple: #9d4edd;
+  --fortnite-yellow: #ffd60a;
+  --fortnite-orange: #ff6b35;
+  --fortnite-pink: #ff006e;
+  --fortnite-green: #38b000;
   
-  /* Legacy vars for compatibility */
-  --primary-color: var(--cow-black);
-  --primary-dark: var(--cow-patch-black);
-  --secondary-color: var(--cow-brown);
-  --success-color: #4caf50;
-  --danger-color: #f44336;
-  --warning-color: #ff9800;
-  --bg-color: var(--cow-white);
-  --bg-secondary: var(--cow-white);
-  --bg-tertiary: #e8e8e8;
-  --text-primary: var(--cow-text-black);
-  --text-secondary: var(--cow-text-gray);
-  --border-color: var(--cow-border-black);
+  /* Rarity Colors */
+  --legendary: #f5a623;
+  --epic: #9b59b6;
+  --rare: #3498db;
+  --uncommon: #2ecc71;
+  --common: #b4b4b4;
+  
+  /* Dark Theme */
+  --bg-dark: #0a0a12;
+  --bg-card: #12121e;
+  --bg-card-hover: #1a1a2e;
+  --text-primary: #ffffff;
+  --text-secondary: #a0a0b0;
+  --border-glow: rgba(0, 212, 255, 0.5);
+  
+  /* Gradients */
+  --gradient-main: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-fortnite: linear-gradient(135deg, #00d4ff 0%, #9d4edd 50%, #ff006e 100%);
+  --gradient-legendary: linear-gradient(135deg, #f5a623 0%, #ff6b35 100%);
 }
 
 body {
-  font-family: 'Impact', 'Arial Black', 'Franklin Gothic Heavy', 'Arial Bold', 'Helvetica Bold', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background: var(--cow-white);
-  background-image: url('/website-background.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
-  color: var(--cow-text-black);
+  font-family: 'Orbitron', 'Russo One', sans-serif;
+  background: var(--bg-dark);
+  background-image: 
+    radial-gradient(ellipse at 20% 80%, rgba(157, 78, 221, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(0, 212, 255, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(255, 0, 110, 0.08) 0%, transparent 60%);
+  color: var(--text-primary);
   min-height: 100vh;
-  font-weight: 900;
+  overflow-x: hidden;
 }
 
 .app {
@@ -59,44 +54,71 @@ body {
   flex-direction: column;
 }
 
+/* Header Styles */
 .app-header {
-  background: var(--cow-white);
-  padding: 2rem;
-  text-align: center;
-  border-bottom: 4px solid var(--cow-black);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   position: relative;
-  background-image: url('/banner-background.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  min-height: 200px;
+  padding: 2rem 2rem 3rem;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(0, 212, 255, 0.1) 0%, transparent 100%);
+  border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+  overflow: hidden;
+}
+
+.header-content {
+  position: relative;
+  z-index: 2;
+}
+
+.logo-section {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.logo-icon {
+  font-size: 3rem;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
 
 .app-header h1 {
+  font-family: 'Russo One', sans-serif;
   font-size: 3rem;
-  margin-bottom: 0.5rem;
-  color: #000000;
-  font-weight: 950;
-  letter-spacing: 3px;
+  font-weight: 900;
+  background: var(--gradient-fortnite);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   text-transform: uppercase;
-  text-shadow: var(--text-outline);
-  -webkit-text-stroke: 0.8px rgba(255, 255, 255, 0.7);
+  letter-spacing: 4px;
+  text-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
 }
 
-.app-header p {
-  color: #000000;
-  font-size: 1.3rem;
-  font-weight: 950;
-  letter-spacing: 1px;
-  text-shadow: var(--text-outline);
-  -webkit-text-stroke: 0.6px rgba(255, 255, 255, 0.7);
+.tagline {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+  letter-spacing: 2px;
 }
 
+.header-glow {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 100%;
+  background: radial-gradient(ellipse at center top, rgba(0, 212, 255, 0.2) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Main Content */
 .app-main {
   flex: 1;
   padding: 2rem;
@@ -105,80 +127,143 @@ body {
   margin: 0 auto;
 }
 
+/* Loading State */
 .loading-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
-  gap: 1rem;
+  min-height: 500px;
+  gap: 2rem;
 }
 
-.spinner {
-  width: 60px;
-  height: 60px;
-  border: 5px solid var(--cow-white);
-  border-top-color: var(--cow-black);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+.loading-battle-bus {
+  position: relative;
+  width: 200px;
+  height: 80px;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
+.bus-icon {
+  font-size: 4rem;
+  animation: busFloat 2s ease-in-out infinite;
+  position: absolute;
+  left: 0;
+  animation: busFly 3s ease-in-out infinite;
 }
 
-.error-container {
-  background: var(--cow-white);
-  border: 4px solid #f44336;
-  border-radius: 8px;
-  padding: 2rem;
+@keyframes busFly {
+  0% { transform: translateX(0) translateY(0); }
+  25% { transform: translateX(50px) translateY(-10px); }
+  50% { transform: translateX(100px) translateY(0); }
+  75% { transform: translateX(50px) translateY(10px); }
+  100% { transform: translateX(0) translateY(0); }
+}
+
+.loading-trail {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, var(--fortnite-blue), transparent);
+  animation: trailPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes trailPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+.loading-text {
   text-align: center;
-  max-width: 600px;
-  margin: 0 auto;
-  box-shadow: 0 4px 20px rgba(244, 67, 54, 0.2);
-  background-image: 
-    radial-gradient(ellipse at 50% 50%, rgba(244, 67, 54, 0.05) 0%, transparent 30%);
+}
+
+.loading-main {
+  display: block;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--fortnite-blue);
+  letter-spacing: 3px;
+  margin-bottom: 0.5rem;
+}
+
+.loading-sub {
+  display: block;
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+.loading-bar {
+  width: 300px;
+  height: 8px;
+  background: var(--bg-card);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 212, 255, 0.3);
+}
+
+.loading-progress {
+  height: 100%;
+  background: var(--gradient-fortnite);
+  animation: loadingProgress 2s ease-in-out infinite;
+}
+
+@keyframes loadingProgress {
+  0% { width: 0%; }
+  50% { width: 80%; }
+  100% { width: 100%; }
+}
+
+/* Error State */
+.error-container {
+  background: var(--bg-card);
+  border: 2px solid #ef4444;
+  border-radius: 16px;
+  padding: 3rem;
+  text-align: center;
+  max-width: 500px;
+  margin: 2rem auto;
+  box-shadow: 0 0 30px rgba(239, 68, 68, 0.2);
+}
+
+.error-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
 }
 
 .error-container h2 {
-  color: #f44336;
-  margin-bottom: 1rem;
   font-size: 2rem;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  font-weight: bold;
+  color: #ef4444;
+  margin-bottom: 1rem;
+  letter-spacing: 3px;
 }
 
 .error-container p {
-  color: var(--cow-text-gray);
-  margin-bottom: 1.5rem;
-  font-size: 1.1rem;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  font-size: 1rem;
 }
 
+/* Buttons */
 .btn-primary {
-  background: var(--cow-black);
-  color: var(--cow-white);
-  border: 3px solid var(--cow-black);
-  padding: 1rem 2rem;
+  background: var(--gradient-fortnite);
+  color: white;
+  border: none;
+  padding: 1rem 2.5rem;
   border-radius: 8px;
+  font-family: 'Orbitron', sans-serif;
   font-size: 1.1rem;
-  font-weight: bold;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  position: relative;
+  letter-spacing: 2px;
+  box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
 }
 
 .btn-primary:hover {
-  background: var(--cow-patch-black);
-  color: var(--cow-white);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(0, 212, 255, 0.5);
 }
 
 .btn-primary:active {
@@ -186,47 +271,77 @@ body {
 }
 
 .btn-secondary {
-  background: var(--cow-white);
-  color: var(--cow-black);
-  border: 3px solid var(--cow-black);
+  background: transparent;
+  color: var(--fortnite-blue);
+  border: 2px solid var(--fortnite-blue);
   padding: 1rem 2rem;
   border-radius: 8px;
-  font-size: 1.1rem;
-  font-weight: bold;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
   text-transform: uppercase;
   letter-spacing: 1px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .btn-secondary:hover {
-  background: var(--cow-black);
-  border-color: var(--cow-black);
-  color: var(--cow-white);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  background: rgba(0, 212, 255, 0.1);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
 }
 
+/* Footer */
 .app-footer {
-  background: var(--cow-white);
+  background: rgba(0, 0, 0, 0.5);
   padding: 1.5rem;
   text-align: center;
-  border-top: 3px solid var(--cow-black);
-  color: var(--cow-text-gray);
-  font-size: 0.9rem;
-  font-weight: normal;
-  letter-spacing: 1px;
-  background-image: 
-    radial-gradient(ellipse at 50% 0%, var(--cow-patch-black) 0%, transparent 15%);
+  border-top: 1px solid rgba(0, 212, 255, 0.2);
 }
 
+.app-footer p {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  letter-spacing: 2px;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
   .app-header h1 {
+    font-size: 1.8rem;
+    letter-spacing: 2px;
+  }
+  
+  .logo-icon {
     font-size: 2rem;
   }
-
+  
+  .tagline {
+    font-size: 0.9rem;
+  }
+  
   .app-main {
     padding: 1rem;
   }
+  
+  .loading-main {
+    font-size: 1.3rem;
+  }
 }
 
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--fortnite-blue), var(--fortnite-purple));
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--fortnite-purple), var(--fortnite-pink));
+}

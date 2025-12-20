@@ -1,224 +1,216 @@
-# 🍌 Nano Banana TA Tool
+# 🎮 Fortnite Skin Generator
 
-AI-powered technical analysis tool for trading charts using Google's Gemini Vision model (Nano Banana Pro when available).
+Transform any image into a Fortnite-style character skin using Google's Nano Banana AI (Gemini Image Generation).
 
-## Features
+![Fortnite Skin Generator](https://img.shields.io/badge/Powered%20by-Nano%20Banana%20AI-blueviolet)
+![Python](https://img.shields.io/badge/Backend-FastAPI-green)
+![React](https://img.shields.io/badge/Frontend-React%20+%20TypeScript-blue)
 
-- 📊 **Chart Analysis**: Upload trading chart screenshots for AI-powered technical analysis
-- 🎯 **Trade Setup**: Get entry, stop-loss, and take-profit recommendations
-- 📈 **Pattern Recognition**: Automatically detect chart patterns and trends
-- 🎨 **Visual Annotations**: View annotated charts with key levels marked
-- ⚡ **Fast & Accurate**: Powered by Google's latest Gemini vision models
+## ✨ Features
 
-## Tech Stack
+- **🖼️ Any Image Input**: Upload selfies, characters, memes, pets - anything works!
+- **🎨 Multiple Styles**: Choose from 12+ skin rarities and styles:
+  - ⭐ Legendary - Ultra-premium with glowing effects
+  - 💜 Epic - High-quality distinctive design
+  - 💙 Rare - Cool and stylish
+  - 💚 Uncommon - Clean and simple
+  - 😂 Meme Lord - Hilarious viral-worthy skins
+  - 🌸 Anime - Manga/anime styled characters
+  - 🤖 Cyberpunk - Neon futuristic warriors
+  - 🍌 Peely Style - Banana-inspired fun
+  - And more!
+- **🤖 AI Powered**: Uses Google's Nano Banana (Gemini 2.0 Flash) for intelligent image transformation
+- **📜 Detailed Descriptions**: Get full skin concepts with back bling, pickaxe, and emote ideas
+- **🛒 Item Shop Preview**: See your skin as it would appear in the Fortnite Item Shop
 
-- **Frontend**: React + TypeScript + Vite
-- **Backend**: FastAPI (Python)
-- **AI Model**: Google Gemini Vision API
-- **Styling**: Modern CSS with dark theme
+## 🚀 Quick Start
 
-## Prerequisites
+### Prerequisites
 
 - Python 3.9+
 - Node.js 18+
-- Google API Key ([Get one here](https://makersuite.google.com/app/apikey))
+- Google API Key with Gemini access
 
-## Setup
-
-### 1. Clone and Install Dependencies
+### Backend Setup
 
 ```bash
-# Backend
-cd backend
+cd "fortnite skin"
+
+# Create virtual environment
+python -m venv venv
+venv\Scripts\activate  # Windows
+# source venv/bin/activate  # Mac/Linux
+
+# Install dependencies
 pip install -r requirements.txt
 
-# Frontend
-cd ../frontend
-npm install
-```
+# Create .env file
+echo "GOOGLE_API_KEY=your-api-key-here" > .env
 
-### 2. Configure Environment Variables
-
-Copy `.env.example` to `.env` in the backend directory:
-
-```bash
-cp .env.example backend/.env
-```
-
-Edit `backend/.env` and add your Google API key:
-
-```
-GOOGLE_API_KEY=your_api_key_here
-GEMINI_MODEL=nano-banana-pro-preview
-```
-
-### 3. Run the Application
-
-**Terminal 1 - Backend:**
-```bash
-cd backend
+# Run the server
 python main.py
-# Or: uvicorn main:app --reload
 ```
 
-The backend will run on `http://localhost:8000`
+### Frontend Setup
 
-**Terminal 2 - Frontend:**
 ```bash
 cd frontend
+
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
 ```
 
-The frontend will run on `http://localhost:5173`
+### Access the App
 
-### 4. Use the Tool
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:8000
+- API Docs: http://localhost:8000/docs
 
-1. Open `http://localhost:5173` in your browser
-2. Upload a trading chart screenshot (PNG, JPG)
-3. Wait for AI analysis (usually 5-15 seconds)
-4. Review the analysis results:
-   - Trade setup (entry, SL, TP)
-   - Support/resistance levels
-   - Detected patterns
-   - Trend analysis
-   - Risk assessment
+## 🔧 Configuration
 
-## Project Structure
+### Environment Variables
 
-```
-chart-ta-tool/
-├── backend/
-│   ├── main.py              # FastAPI server
-│   ├── utils/
-│   │   └── prompts.py       # TA prompt templates
-│   ├── requirements.txt
-│   └── .env                 # API keys (not in git)
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── UploadChart.tsx
-│   │   │   └── AnnotatedChart.tsx
-│   │   ├── App.tsx
-│   │   └── main.tsx
-│   ├── package.json
-│   └── vite.config.ts
-└── README.md
+Create a `.env` file in the root directory:
+
+```env
+# Required
+GOOGLE_API_KEY=your-google-api-key
+
+# Optional
+IMAGE_MODEL=gemini-2.0-flash-exp
+VISION_MODEL=gemini-2.0-flash-exp
+ALLOWED_ORIGINS=*
+CACHE_DIR=cache
 ```
 
-## API Endpoints
+### API Models
 
-### `POST /analyze`
+The app uses Google's Nano Banana models:
 
-Upload a chart image for analysis.
+- **gemini-2.0-flash-exp**: For image generation and vision tasks
+- Fallback to description-only mode if image generation is unavailable
 
-**Request:**
-- `file`: Image file (multipart/form-data)
+## 📡 API Endpoints
 
-**Response:**
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | API info and status |
+| `/health` | GET | Health check |
+| `/styles` | GET | Get available skin styles |
+| `/generate` | POST | Generate Fortnite skin from image |
+
+### Generate Skin Request
+
+```bash
+curl -X POST "http://localhost:8000/generate" \
+  -F "file=@your-image.jpg" \
+  -F "style=legendary" \
+  -F "custom_prompt=Add fire effects"
+```
+
+### Response
+
 ```json
 {
   "success": true,
-  "analysis": {
-    "bias": "bullish",
-    "confidence": 8,
-    "entry": { "price": "45.20", "reasoning": "..." },
-    "stop_loss": { "price": "44.50", "risk_percent": "1.5%" },
-    "take_profits": [...],
-    "support_levels": [...],
-    "resistance_levels": [...],
-    "patterns": [...],
-    "trend": {...},
-    "reasoning": "..."
-  },
+  "style": "legendary",
   "original_image": "data:image/png;base64,...",
-  "annotated_image": null
+  "generated_images": ["data:image/png;base64,..."],
+  "description": "Introducing **FLAME WARRIOR**...",
+  "skin_details": {
+    "name": "Flame Warrior",
+    "rarity": "Legendary",
+    "set": "Inferno Series"
+  }
 }
 ```
 
-## Customization
+## 🏗️ Project Structure
 
-### Modify the TA Prompt
-
-Edit `backend/utils/prompts.py` to customize the analysis style, add indicators, or change the output format.
-
-### Change Model
-
-Update `GEMINI_MODEL` in `.env`:
-- `nano-banana-pro-preview` - Optimized for vision tasks like chart analysis (default)
-- `gemini-2.5-pro` - Best quality alternative
-- `gemini-2.0-flash` - Faster, lower cost
-
-### Frontend Styling
-
-Modify CSS files in `frontend/src/` to customize the UI theme and layout.
-
-## Deployment
-
-### Backend (FastAPI)
-
-**Render:**
-```bash
-# Add render.yaml or use Render dashboard
+```
+fortnite skin/
+├── main.py              # FastAPI backend
+├── requirements.txt     # Python dependencies
+├── .env                 # Environment variables
+├── utils/
+│   └── prompts.py       # AI prompts for skin generation
+├── frontend/
+│   ├── src/
+│   │   ├── App.tsx      # Main React app
+│   │   ├── App.css      # Global styles
+│   │   └── components/
+│   │       ├── UploadImage.tsx   # Image upload component
+│   │       ├── SkinResult.tsx    # Result display component
+│   │       └── *.css             # Component styles
+│   ├── package.json
+│   └── vite.config.ts
+└── cache/               # Cached generations
 ```
 
-**Fly.io:**
-```bash
-fly launch
+## 🎨 Customization
+
+### Adding New Styles
+
+Edit `utils/prompts.py` to add new skin styles:
+
+```python
+style_prompts = {
+    "your_style": """**YOUR STYLE SKIN**
+    
+    Create a [your description]...
+    """,
+}
 ```
 
-**Heroku:**
-```bash
-# Add Procfile: web: uvicorn main:app --host 0.0.0.0 --port $PORT
+Then add it to `get_skin_styles()` function.
+
+### Styling the Frontend
+
+The app uses CSS variables for theming. Edit `App.css`:
+
+```css
+:root {
+  --fortnite-blue: #00d4ff;
+  --fortnite-purple: #9d4edd;
+  --legendary: #f5a623;
+  /* ... */
+}
 ```
 
-### Frontend (Vite)
+## 🚢 Deployment
 
-**Vercel:**
+### Deploy to Render
+
+1. Create a new Web Service on [Render](https://render.com)
+2. Connect your GitHub repository
+3. Set environment variables:
+   - `GOOGLE_API_KEY`: Your API key
+4. Deploy!
+
+### Docker
+
 ```bash
-npm install -g vercel
-vercel
+docker build -t fortnite-skin-generator .
+docker run -p 8000:8000 -e GOOGLE_API_KEY=your-key fortnite-skin-generator
 ```
 
-**Netlify:**
-```bash
-npm run build
-# Deploy dist/ folder
-```
+## ⚠️ Disclaimer
 
-## Tips for Best Results
+This project is NOT affiliated with, endorsed by, or connected to Epic Games or Fortnite. This is a fan-made AI art project for entertainment purposes only. All Fortnite-related trademarks and copyrights are property of Epic Games.
 
-1. **Chart Quality**: Use clear, high-resolution screenshots
-2. **Timeframe**: Works with any timeframe (1m to weekly)
-3. **Multiple Charts**: Upload different timeframes for comprehensive analysis
-4. **API Costs**: Gemini 1.5 Pro costs ~$0.001-0.01 per analysis. Consider caching common analyses.
+## 📄 License
 
-## Troubleshooting
+MIT License - feel free to use and modify!
 
-**"GOOGLE_API_KEY not found"**
-- Ensure `.env` file exists in `backend/` directory
-- Check that the API key is correctly set
+## 🙏 Credits
 
-**CORS errors**
-- Update `allow_origins` in `backend/main.py` to include your frontend URL
+- **AI**: Google Gemini / Nano Banana
+- **Framework**: FastAPI + React + TypeScript
+- **Styling**: Custom CSS with Fortnite-inspired design
 
-**Image upload fails**
-- Check file size (max ~10MB recommended)
-- Ensure image format is PNG/JPG/JPEG
+---
 
-## Future Enhancements
-
-- [ ] Image annotation overlay (when Gemini supports image editing)
-- [ ] Multi-chart comparison
-- [ ] Analysis history/saved charts
-- [ ] Custom prompt templates per user
-- [ ] Real-time chart analysis from trading platforms
-- [ ] Export analysis as PDF/PNG
-
-## License
-
-MIT
-
-## Credits
-
-Built with Cursor & Claude Opus, powered by Google Gemini Vision.
-
+Made with ⚡ by AI enthusiasts

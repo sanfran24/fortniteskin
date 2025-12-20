@@ -1,70 +1,82 @@
-import { useState } from 'react'
-import UploadChart from './components/UploadChart'
-import AnnotatedChart from './components/AnnotatedChart'
+import { useState, useEffect } from 'react'
+import UploadImage from './components/UploadImage'
+import SkinResult from './components/SkinResult'
 import './App.css'
 
-export interface AnalysisResult {
+export interface SkinStyle {
+  id: string
+  name: string
+  description: string
+  color: string
+  icon: string
+}
+
+export interface GenerationResult {
   success: boolean
-  analysis: {
-    bias?: string
-    confidence?: number
-    timeframe?: string
-    asset?: string
-    current_price?: string
-    support_levels?: Array<{ price: string; strength: string; reason: string }>
-    resistance_levels?: Array<{ price: string; strength: string; reason: string }>
-    patterns?: Array<{ name: string; type: string; reliability: string }>
-    trend?: {
-      direction: string
-      strength: string
-      since: string
-    }
-    entry?: {
-      price: string
-      reasoning: string
-    }
-    stop_loss?: {
-      price: string
-      risk_percent: string
-      reasoning: string
-    }
-    take_profits?: Array<{
-      price: string
-      risk_reward: string
-      reasoning: string
-    }>
-    risk_reward_ratio?: string
-    position_sizing?: string
-    risks?: string[]
-    reasoning?: string
-    raw_text?: string
-    parsed?: boolean
-  }
-  raw_response?: string
-  original_image?: string
-  annotated_image?: string | null
-  metadata?: {
-    timeframe?: string
-    asset_type?: string
-    trade_direction?: string | null
+  style: string
+  original_image: string
+  generated_images: string[]
+  description: string
+  skin_details: {
+    name?: string
+    rarity?: string
+    set?: string
+    features?: string[]
+    colors?: string[]
+    back_bling?: string
+    pickaxe?: string
+    emote?: string
   }
 }
 
 function App() {
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
+  const [result, setResult] = useState<GenerationResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [styles, setStyles] = useState<SkinStyle[]>([])
 
-  const handleAnalysisComplete = (result: AnalysisResult) => {
-    setAnalysisResult(result)
+  // Fetch available styles on mount
+  useEffect(() => {
+    const fetchStyles = async () => {
+      try {
+        const API_URL = import.meta.env.VITE_API_URL || (
+          import.meta.env.PROD 
+            ? 'https://fortnite-skin-generator.onrender.com' 
+            : 'http://localhost:8000'
+        )
+        const response = await fetch(`${API_URL}/styles`)
+        if (response.ok) {
+          const data = await response.json()
+          setStyles(data.styles)
+        }
+      } catch (err) {
+        console.log('Could not fetch styles, using defaults')
+        // Default styles if API is not available
+        setStyles([
+          { id: 'legendary', name: 'Legendary', description: 'Ultra-premium skin', color: '#f5a623', icon: '⭐' },
+          { id: 'epic', name: 'Epic', description: 'High-quality skin', color: '#9b59b6', icon: '💜' },
+          { id: 'rare', name: 'Rare', description: 'Cool distinctive skin', color: '#3498db', icon: '💙' },
+          { id: 'uncommon', name: 'Uncommon', description: 'Clean simple skin', color: '#2ecc71', icon: '💚' },
+          { id: 'meme', name: 'Meme Lord', description: 'Hilarious viral skin', color: '#f39c12', icon: '😂' },
+          { id: 'anime', name: 'Anime', description: 'Anime-styled character', color: '#ff6b9d', icon: '🌸' },
+          { id: 'cyberpunk', name: 'Cyberpunk', description: 'Neon cyber warrior', color: '#00ffff', icon: '🤖' },
+          { id: 'peely', name: 'Peely Style', description: 'Banana-inspired fun', color: '#ffeb3b', icon: '🍌' },
+        ])
+      }
+    }
+    fetchStyles()
+  }, [])
+
+  const handleGenerationComplete = (generationResult: GenerationResult) => {
+    setResult(generationResult)
     setLoading(false)
     setError(null)
   }
 
-  const handleAnalysisStart = () => {
+  const handleGenerationStart = () => {
     setLoading(true)
     setError(null)
-    setAnalysisResult(null)
+    setResult(null)
   }
 
   const handleError = (errorMessage: string) => {
@@ -73,7 +85,7 @@ function App() {
   }
 
   const handleReset = () => {
-    setAnalysisResult(null)
+    setResult(null)
     setError(null)
     setLoading(false)
   }
@@ -81,50 +93,66 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>NANO BANANA TA TOOL</h1>
-        <p>AI-Powered Technical Analysis for Trading Charts</p>
+        <div className="header-content">
+          <div className="logo-section">
+            <span className="logo-icon">🎮</span>
+            <h1>FORTNITE SKIN GENERATOR</h1>
+          </div>
+          <p className="tagline">Transform any image into a Fortnite character skin using AI</p>
+        </div>
+        <div className="header-glow"></div>
       </header>
 
       <main className="app-main">
-        {!analysisResult && !loading && (
-          <UploadChart
-            onAnalysisStart={handleAnalysisStart}
-            onAnalysisComplete={handleAnalysisComplete}
+        {!result && !loading && (
+          <UploadImage
+            styles={styles}
+            onGenerationStart={handleGenerationStart}
+            onGenerationComplete={handleGenerationComplete}
             onError={handleError}
           />
         )}
 
         {loading && (
           <div className="loading-container">
-            <div className="spinner"></div>
-            <p style={{ color: '#000000', fontSize: '1.5rem', fontWeight: '900', letterSpacing: '2px', textTransform: 'uppercase', textShadow: 'var(--text-outline)', WebkitTextStroke: '2px rgba(255, 255, 255, 1)' }}>ANALYZING CHART...</p>
+            <div className="loading-battle-bus">
+              <div className="bus-icon">🚌</div>
+              <div className="loading-trail"></div>
+            </div>
+            <div className="loading-text">
+              <span className="loading-main">GENERATING YOUR SKIN...</span>
+              <span className="loading-sub">Nano Banana AI is working its magic</span>
+            </div>
+            <div className="loading-bar">
+              <div className="loading-progress"></div>
+            </div>
           </div>
         )}
 
         {error && (
           <div className="error-container">
-            <h2>Error</h2>
+            <div className="error-icon">💀</div>
+            <h2>ELIMINATED!</h2>
             <p>{error}</p>
             <button onClick={handleReset} className="btn-primary">
-              Try Again
+              🔄 DROP AGAIN
             </button>
           </div>
         )}
 
-        {analysisResult && (
-          <AnnotatedChart
-            result={analysisResult}
+        {result && (
+          <SkinResult
+            result={result}
             onReset={handleReset}
           />
         )}
       </main>
 
       <footer className="app-footer">
-        <p>POWERED BY GOOGLE GEMINI VISION • BUILT WITH CURSOR & CLAUDE OPUS</p>
+        <p>⚡ POWERED BY GOOGLE NANO BANANA AI • NOT AFFILIATED WITH EPIC GAMES ⚡</p>
       </footer>
     </div>
   )
 }
 
 export default App
-
