@@ -40,7 +40,7 @@ function App() {
       try {
         const API_URL = import.meta.env.VITE_API_URL || (
           import.meta.env.PROD 
-            ? 'https://fortniteskin-backend.onrender.com' 
+            ? 'https://fortniteskin.onrender.com' 
             : 'http://localhost:8000'
         )
         const response = await fetch(`${API_URL}/styles`)
