@@ -1,31 +1,14 @@
 services:
-  # Backend API Service
+  # Backend API Service (Deploy this on Render)
   - type: web
-    name: nano-banana-ta-backend
+    name: fortniteskin-backend
     env: python
-    buildCommand: pip install -r backend/requirements.txt
-    startCommand: cd backend && python -m uvicorn main:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: GOOGLE_API_KEY
         sync: false
-      - key: GEMINI_MODEL
-        value: nano-banana-pro-preview
       - key: PYTHON_VERSION
         value: 3.11.0
     healthCheckPath: /health
-    disk:
-      name: cache-disk
-      mountPath: /opt/render/project/src/backend/cache
-      sizeGB: 1
-
-  # Frontend Service
-  - type: web
-    name: nano-banana-ta-frontend
-    env: node
-    buildCommand: cd frontend && npm install && npm run build
-    startCommand: cd frontend && npm run preview -- --port $PORT --host 0.0.0.0
-    envVars:
-      - key: VITE_API_URL
-        value: https://nano-banana-ta-backend.onrender.com
-    staticPublishPath: frontend/dist
 

@@ -4,91 +4,42 @@ Fortnite Skin Generator prompts for Nano Banana (Gemini Image Generation).
 from typing import Optional
 
 def get_skin_styles() -> list:
-    """Returns all available Fortnite skin styles"""
+    """Returns all available Fortnite skin styles - 5 distinct options"""
     return [
         {
             "id": "legendary",
             "name": "Legendary",
-            "description": "Ultra-detailed legendary skin with glowing effects, elaborate armor, and premium design",
+            "description": "Premium glowing armor with gold/chrome effects",
             "color": "#f5a623",
             "icon": "⭐"
         },
         {
-            "id": "epic",
-            "name": "Epic",
-            "description": "High-quality skin with unique features and standout design",
-            "color": "#9b59b6",
-            "icon": "💜"
-        },
-        {
-            "id": "rare",
-            "name": "Rare",
-            "description": "Cool skin with distinctive style and good detail",
-            "color": "#3498db",
-            "icon": "💙"
-        },
-        {
-            "id": "uncommon",
-            "name": "Uncommon",
-            "description": "Clean, simple skin with nice colors",
-            "color": "#2ecc71",
-            "icon": "💚"
-        },
-        {
-            "id": "collab",
-            "name": "Collaboration",
-            "description": "Crossover style inspired by iconic franchises",
-            "color": "#e74c3c",
-            "icon": "🤝"
-        },
-        {
-            "id": "meme",
-            "name": "Meme Lord",
-            "description": "Hilarious, viral-worthy skin design",
-            "color": "#f39c12",
-            "icon": "😂"
-        },
-        {
             "id": "anime",
             "name": "Anime",
-            "description": "Anime/manga inspired character design",
+            "description": "Cel-shaded anime/manga character style",
             "color": "#ff6b9d",
             "icon": "🌸"
         },
         {
+            "id": "meme",
+            "name": "Meme Lord",
+            "description": "Funny, goofy, viral-worthy character",
+            "color": "#f39c12",
+            "icon": "😂"
+        },
+        {
             "id": "cyberpunk",
             "name": "Cyberpunk",
-            "description": "Futuristic neon-lit cyber warrior",
+            "description": "Neon-lit futuristic cyber warrior",
             "color": "#00ffff",
             "icon": "🤖"
         },
         {
-            "id": "fantasy",
-            "name": "Fantasy",
-            "description": "Magical fantasy warrior with mystical elements",
-            "color": "#8e44ad",
-            "icon": "🧙"
-        },
-        {
             "id": "horror",
             "name": "Horror",
-            "description": "Spooky, creepy skin perfect for Fortnitemares",
-            "color": "#1a1a2e",
+            "description": "Creepy, spooky Fortnitemares style",
+            "color": "#8b0000",
             "icon": "👻"
-        },
-        {
-            "id": "peely",
-            "name": "Peely Style",
-            "description": "Banana-inspired goofy fun character",
-            "color": "#ffeb3b",
-            "icon": "🍌"
-        },
-        {
-            "id": "slurp",
-            "name": "Slurp Series",
-            "description": "Translucent slurp juice character",
-            "color": "#00bcd4",
-            "icon": "💧"
         }
     ]
 
@@ -96,122 +47,25 @@ def get_skin_styles() -> list:
 def get_fortnite_skin_prompt(style: str = "legendary", custom_prompt: str = "") -> str:
     """
     Returns the prompt for generating a Fortnite skin based on style.
-    
-    Args:
-        style: The skin style/rarity (legendary, epic, rare, uncommon, collab, meme, anime, cyberpunk)
-        custom_prompt: Optional custom instructions to add
+    Each style has a VERY DISTINCT visual direction.
     """
     
-    base_prompt = """You are the lead character artist at Epic Games, responsible for creating iconic Fortnite skins.
-    
-Your task is to transform the provided image into an authentic Fortnite character skin design.
-
-**FORTNITE ART STYLE REQUIREMENTS:**
-- Slightly stylized proportions (larger heads, expressive features)
-- Clean, readable silhouettes that work in-game
-- Vibrant, saturated colors
-- Smooth, polished 3D render look
-- Bold outlines and shapes
-- Exaggerated but appealing features
-- Battle Royale ready design
-
-**TECHNICAL REQUIREMENTS:**
-- Full body character design (head to toe)
-- T-pose or action pose
-- Clean background (solid color or gradient)
-- High detail on face and accessories
-- Proper Fortnite character proportions
-- Ready for the Item Shop showcase
-
-"""
-
     style_prompts = {
-        "legendary": """**LEGENDARY RARITY SKIN**
+        "legendary": """CREATE A LEGENDARY FORTNITE SKIN:
 
-Create an ULTRA-PREMIUM legendary tier skin with:
-- Elaborate, detailed costume with multiple layers
-- Glowing/reactive elements that pulse with energy
-- Unique particle effects (flames, electricity, magic)
-- Premium materials (chrome, gold, crystals)
-- Imposing, powerful presence
-- Multiple selectable styles
-- Built-in emote worthy design
-- Back bling that complements the main skin
+VISUAL STYLE - LEGENDARY TIER:
+- GOLD and CHROME metallic armor pieces
+- GLOWING energy effects (blue/orange/purple glow)
+- Elaborate detailed costume with multiple layers
+- Premium materials: crystals, gems, glowing runes
+- Particle effects around the character (sparks, energy wisps)
+- Imposing, powerful superhero-like presence
+- Think: Iron Man meets fantasy warrior
 
-Think: Omega, Ragnarok, Ice King, The Reaper level quality.
-This skin should be the crown jewel of any locker!
-""",
+COLOR PALETTE: Gold, silver, chrome, with glowing blue/purple/orange accents
 
-        "epic": """**EPIC RARITY SKIN**
-
-Create a HIGH-QUALITY epic tier skin with:
-- Distinctive, memorable design
-- Unique theme and color palette
-- Quality materials and textures
-- Some special effects or glowing elements
-- Strong silhouette recognition
-- Professional, polished look
-- Possible alternate style
-
-Think: Dark Voyager, Drift, Lynx quality level.
-A skin that stands out in the lobby!
-""",
-
-        "rare": """**RARE RARITY SKIN**
-
-Create a SOLID rare tier skin with:
-- Clean, appealing design
-- Good use of the blue rarity aesthetic
-- Interesting costume without being over-designed
-- Nice color combinations
-- Clear theme or concept
-- Good value proposition
-
-Think: Brite Bomber, Raptor, Cuddle Team Leader tier.
-A reliable favorite that looks great!
-""",
-
-        "uncommon": """**UNCOMMON RARITY SKIN**
-
-Create a CLEAN uncommon tier skin with:
-- Simple but effective design
-- Nice color scheme
-- Clean lines and shapes
-- Accessible, friendly appearance
-- Good starter skin vibes
-- Understated cool factor
-
-Think: Commando, Survival Specialist tier.
-Simple, clean, and still cool!
-""",
-
-        "collab": """**COLLABORATION SKIN**
-
-Create an ICON SERIES / GAMING LEGENDS style skin:
-- Authentic to the source material
-- Fortnite-ified but recognizable
-- Premium crossover quality
-- Unique loading screen worthy
-- Multiple styles from the source
-- Matching accessories
-
-Think: Kratos, Master Chief, Naruto, Travis Scott tier.
-A crossover event everyone remembers!
-""",
-
-        "meme": """**MEME LORD SKIN**
-
-Create a HILARIOUS viral-worthy skin:
-- Immediately funny and recognizable
-- Perfect for content creators
-- Meme template potential
-- Absurd but lovable
-- Trolling potential in-game
-- Instant classic vibes
-
-Think: Peely, Fishstick, Guff, Lil Whip tier.
-A skin that makes everyone laugh!
-""",
+REFERENCE SKINS: Omega, Ragnarok, Ice King, Midas
+This should look like a 2000 V-Bucks skin!""",
 
         "anime": """**ANIME SERIES SKIN**
 
@@ -225,116 +79,103 @@ Create an ANIME-STYLED character:
 - Matching anime-style accessories
 
 Think: Naruto series, Dragon Ball, My Hero Academia tier.
-A skin straight from your favorite anime!
-""",
+A skin straight from your favorite anime!""",
 
-        "cyberpunk": """**CYBERPUNK SKIN**
+        "meme": """CREATE A MEME LORD FORTNITE SKIN:
 
-Create a NEON-SOAKED cyber warrior:
-- Glowing neon accents (pink, cyan, purple)
+VISUAL STYLE - FUNNY/GOOFY:
+- RIDICULOUS and HILARIOUS character design
+- Exaggerated silly facial expression (derpy, goofy, funny)
+- Absurd costume or body shape
+- Could be food-themed, animal-themed, or just weird
+- Maximum meme potential
+- The kind of skin streamers would use to troll
+- Instant classic funny vibes
+
+COLOR PALETTE: Bright, silly colors - yellows, pinks, whatever's funny
+
+REFERENCE SKINS: Peely (banana), Fishstick, Guff, Lil Whip
+Make people LAUGH when they see this skin!""",
+
+        "cyberpunk": """CREATE A CYBERPUNK FORTNITE SKIN:
+
+VISUAL STYLE - NEON CYBER FUTURE:
+- GLOWING NEON lights (hot pink, cyan, electric blue)
+- Dark black base with bright neon accents
 - Futuristic tech armor/clothing
-- Holographic elements
-- Cyber implants and augments
-- Dark base with bright neon highlights
-- LED patterns and circuits
+- LED strips and circuit patterns on outfit
+- Cyber implants, robotic parts, or augmentations  
+- Holographic elements floating nearby
 - Visor or mask with digital display
+- Blade Runner / Tron aesthetic
 
-Think: Neo-future, blade runner aesthetic.
-Ready to hack the simulation!
-""",
+COLOR PALETTE: Black base + HOT PINK + CYAN + ELECTRIC BLUE neon
 
-        "fantasy": """**FANTASY SKIN**
+REFERENCE: Cyberpunk 2077, Tron, neon dystopia
+Make it GLOW with neon energy!""",
 
-Create a MAGICAL fantasy character:
-- Mystical robes, armor, or clothing
-- Magical effects (runes, auras, enchantments)
-- Fantasy race features (elf, orc, fairy, etc.)
-- Enchanted weapons or accessories
-- Medieval-fantasy meets Fortnite
-- Magical creature companion back bling
+        "horror": """CREATE A HORROR FORTNITE SKIN:
 
-Think: Wizards, elves, knights, druids.
-A skin from another realm!
-""",
-
-        "horror": """**HORROR/FORTNITEMARES SKIN**
-
-Create a SPOOKY terrifying skin:
-- Creepy, unsettling design
-- Horror movie inspired
-- Dark color palette with accent colors
-- Scary masks or faces
-- Undead or monster features
-- Perfect for Fortnitemares
+VISUAL STYLE - CREEPY/SCARY:
+- TERRIFYING and UNSETTLING design
+- Horror movie monster vibes
+- Creepy mask or disturbing face
+- Dark, shadowy color palette
+- Could be: zombie, demon, ghost, slasher villain
+- Glowing evil eyes (red/green)
+- Tattered, damaged, or corrupted clothing
 - Nightmare fuel but still cool
 
-Think: Skull Trooper, Chaos Agent, Cube Queen tier.
-A skin that haunts your dreams!
-""",
+COLOR PALETTE: Dark blacks, grays, with red/green accents
 
-        "peely": """**PEELY STYLE SKIN**
-
-Create a BANANA-INSPIRED goofy character:
-- Yellow banana aesthetic
-- Silly, lovable expression
-- Various banana stages or styles
-- Fruit-based humor
-- Wholesome and funny
-- Perfect for casual vibes
-
-Think: All the Peely variants!
-Embrace the BANANA life!
-""",
-
-        "slurp": """**SLURP SERIES SKIN**
-
-Create a SLURP JUICE character:
-- Translucent blue slurp body
-- Liquid/gel texture
-- Internal glow effect
-- Slurp barrel elements
-- Healing vibes
-- Sloshy, fluid design
-
-Think: Slurp Leviathan, Rippley, Slurp Jonesy.
-Hydration is key!
-"""
+REFERENCE SKINS: Skull Trooper, Chaos Agent, Cube Queen
+Perfect for Fortnitemares - genuinely CREEPY!"""
     }
 
-    # Get style-specific prompt
-    style_prompt = style_prompts.get(style.lower(), style_prompts["legendary"])
+    # Get style-specific prompt (default to legendary)
+    style_key = style.lower()
+    if style_key not in style_prompts:
+        style_key = "legendary"
     
-    # Build full prompt
-    full_prompt = base_prompt + style_prompt
+    style_prompt = style_prompts[style_key]
     
+    # Build the full prompt with clear structure
+    full_prompt = f"""You are creating a Fortnite character skin. Generate a FULL BODY character image.
+
+{style_prompt}
+
+CRITICAL REQUIREMENTS:
+1. FULL BODY - Show complete character from HEAD TO TOE (not cropped)
+2. Include: head, torso, arms, hands, legs, feet with shoes/boots
+3. **BACKGROUND**: Dark blue to purple gradient background (like Fortnite Item Shop)
+4. **PLATFORM**: Character MUST be standing on a glowing circular platform/pedestal at their feet (the Item Shop display platform)
+5. 3D rendered look matching official Fortnite promotional art
+6. Fortnite proportions (slightly larger head, stylized body)
+7. The circular platform should have a subtle glow effect around the edges
+
+Transform the input image into this style while keeping recognizable features from the original.
+
+IMPORTANT: Every generated skin MUST have the gradient background AND the circular standing platform!
+"""
+
     # Add custom prompt if provided
     if custom_prompt:
         full_prompt += f"""
-
-**CUSTOM REQUIREMENTS:**
+ADDITIONAL INSTRUCTIONS FROM USER:
 {custom_prompt}
 """
 
     full_prompt += """
+OUTPUT: Generate the Fortnite skin image with:
+- GRADIENT BACKGROUND (dark blue to purple)
+- CIRCULAR GLOWING PLATFORM at the character's feet
+- Full body character standing on the platform
+- Item Shop display style presentation
 
-**OUTPUT:**
-Generate a stunning Fortnite character skin based on the input image.
-Transform the subject into an authentic Fortnite skin while maintaining 
-recognizable elements from the original.
-
-Include a description with:
-1. **Skin Name** - A catchy, Fortnite-style name
-2. **Rarity** - Confirm the rarity tier
-3. **Description** - Item shop description text
-4. **Set Name** - What set it belongs to
-5. **Reactive Features** - Any reactive/dynamic elements
-6. **Styles** - Available alternate styles
-7. **Back Bling** - Matching back bling design
-8. **Harvesting Tool** - Matching pickaxe design
-9. **Glider** - Matching glider concept
-10. **Built-in Emote** - Special emote idea
-
-Make it feel like official Fortnite content!
+Also include:
+- Skin Name (catchy Fortnite-style name)
+- Rarity tier
+- Short Item Shop description
 """
 
     return full_prompt

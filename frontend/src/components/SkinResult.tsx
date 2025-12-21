@@ -13,52 +13,124 @@ export default function SkinResult({ result, onReset }: SkinResultProps) {
 
   const getRarityColor = (style: string) => {
     const colors: Record<string, string> = {
-      legendary: '#f5a623',
-      epic: '#9b59b6',
-      rare: '#3498db',
-      uncommon: '#2ecc71',
-      common: '#b4b4b4',
-      collab: '#e74c3c',
-      meme: '#f39c12',
-      anime: '#ff6b9d',
-      cyberpunk: '#00ffff',
-      fantasy: '#8e44ad',
-      horror: '#1a1a2e',
+      legendary: '#ff9800',
+      epic: '#e040fb',
+      rare: '#29b6f6',
+      uncommon: '#66bb6a',
+      common: '#bdbdbd',
+      meme: '#ff9800',
+      anime: '#f48fb1',
+      cyberpunk: '#00e5ff',
       peely: '#ffeb3b',
-      slurp: '#00bcd4',
     }
-    return colors[style.toLowerCase()] || '#9b59b6'
+    return colors[style.toLowerCase()] || '#e040fb'
+  }
+
+  const getPrice = (style: string) => {
+    const prices: Record<string, string> = {
+      legendary: '2,000',
+      epic: '1,500',
+      rare: '1,200',
+      uncommon: '800',
+      common: '500',
+    }
+    return prices[style.toLowerCase()] || '1,500'
   }
 
   const hasGeneratedImages = result.generated_images && result.generated_images.length > 0
 
   return (
     <div className="skin-result-container">
-      {/* Header */}
-      <div className="result-header">
-        <div className="rarity-badge" style={{ backgroundColor: getRarityColor(result.style) }}>
-          {result.style.toUpperCase()}
+      {/* Left Panel - Details */}
+      <div className="details-panel">
+        {/* Header */}
+        <div className="result-header">
+          <span 
+            className="rarity-badge" 
+            style={{ backgroundColor: getRarityColor(result.style) }}
+          >
+            {result.style.toUpperCase()}
+          </span>
+          <h2>{result.skin_details?.name || 'CUSTOM SKIN'}</h2>
         </div>
-        <h2>
-          {result.skin_details?.name || 'YOUR FORTNITE SKIN'}
-        </h2>
-        <button onClick={onReset} className="btn-secondary">
-          🔄 CREATE ANOTHER
-        </button>
+
+        {/* Stats */}
+        <div className="stats-grid">
+          <div className="stat-card" style={{ '--stat-color': getRarityColor(result.style) } as React.CSSProperties}>
+            <span className="stat-label">Rarity</span>
+            <span className="stat-value">{result.style}</span>
+          </div>
+          {result.skin_details?.set && (
+            <div className="stat-card" style={{ '--stat-color': '#29b6f6' } as React.CSSProperties}>
+              <span className="stat-label">Set</span>
+              <span className="stat-value">{result.skin_details.set}</span>
+            </div>
+          )}
+          <div className="stat-card" style={{ '--stat-color': '#66bb6a' } as React.CSSProperties}>
+            <span className="stat-label">Back Bling</span>
+            <span className="stat-value">{result.skin_details?.back_bling || 'Included'}</span>
+          </div>
+          <div className="stat-card" style={{ '--stat-color': '#e040fb' } as React.CSSProperties}>
+            <span className="stat-label">Pickaxe</span>
+            <span className="stat-value">{result.skin_details?.pickaxe || 'Matching'}</span>
+          </div>
+        </div>
+
+        {/* Description */}
+        {result.description && (
+          <div className="description-card">
+            <h3>📜 Skin Concept</h3>
+            <div className={`description-content ${expandedDescription ? 'expanded' : ''}`}>
+              <p>{result.description}</p>
+            </div>
+            {result.description.length > 400 && (
+              <button 
+                className="expand-btn"
+                onClick={() => setExpandedDescription(!expandedDescription)}
+              >
+                {expandedDescription ? '▲ Less' : '▼ More'}
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="action-buttons">
+          {hasGeneratedImages && (
+            <a 
+              href={result.generated_images[0]} 
+              download={`fortnite-skin-${result.style}.png`}
+              className="btn-download"
+            >
+              ⬇️ Download Skin
+            </a>
+          )}
+          <button 
+            className="btn-share"
+            onClick={() => {
+              navigator.clipboard.writeText('Check out my AI-generated Fortnite skin! Made with Fortnite Skin Generator')
+              alert('Copied to clipboard!')
+            }}
+          >
+            📋 Share
+          </button>
+          <button onClick={onReset} className="btn-new">
+            🔄 Create New Skin
+          </button>
+        </div>
       </div>
 
-      {/* Main Content */}
-      <div className="result-content">
-        {/* Image Display */}
-        <div className="image-section">
-          {/* Tab Buttons */}
+      {/* Right Panel - Preview */}
+      <div className="preview-panel">
+        <div className="character-display">
+          {/* Tabs */}
           <div className="image-tabs">
             {hasGeneratedImages && (
               <button 
                 className={`tab-btn ${activeTab === 'generated' ? 'active' : ''}`}
                 onClick={() => setActiveTab('generated')}
               >
-                ✨ Generated Skin
+                ✨ Generated
               </button>
             )}
             <button 
@@ -69,7 +141,7 @@ export default function SkinResult({ result, onReset }: SkinResultProps) {
             </button>
           </div>
 
-          {/* Image Display */}
+          {/* Image */}
           <div className="image-display">
             {activeTab === 'generated' && hasGeneratedImages ? (
               <div className="generated-images">
@@ -77,7 +149,7 @@ export default function SkinResult({ result, onReset }: SkinResultProps) {
                   <img 
                     key={idx}
                     src={img} 
-                    alt={`Generated Fortnite Skin ${idx + 1}`}
+                    alt={`Generated Skin ${idx + 1}`}
                     className="result-image generated"
                   />
                 ))}
@@ -85,121 +157,24 @@ export default function SkinResult({ result, onReset }: SkinResultProps) {
             ) : activeTab === 'generated' && !hasGeneratedImages ? (
               <div className="no-image-placeholder">
                 <span className="placeholder-icon">🎨</span>
-                <p>Image generation not available in this mode</p>
-                <p className="placeholder-sub">Check out the detailed description below!</p>
+                <p>Image generation in description mode</p>
+                <p className="placeholder-sub">Check the skin concept on the left!</p>
               </div>
             ) : (
               <img 
                 src={result.original_image} 
-                alt="Original image"
+                alt="Original"
                 className="result-image original"
               />
             )}
           </div>
 
-          {/* Download Button */}
-          {hasGeneratedImages && activeTab === 'generated' && (
-            <div className="download-section">
-              <a 
-                href={result.generated_images[0]} 
-                download={`fortnite-skin-${result.style}.png`}
-                className="btn-download"
-              >
-                ⬇️ DOWNLOAD SKIN
-              </a>
-            </div>
-          )}
-        </div>
-
-        {/* Skin Details */}
-        <div className="details-section">
-          {/* Quick Stats */}
-          <div className="stats-grid">
-            <div className="stat-card">
-              <span className="stat-label">RARITY</span>
-              <span className="stat-value" style={{ color: getRarityColor(result.style) }}>
-                {result.style.toUpperCase()}
-              </span>
-            </div>
-            {result.skin_details?.set && (
-              <div className="stat-card">
-                <span className="stat-label">SET</span>
-                <span className="stat-value">{result.skin_details.set}</span>
-              </div>
-            )}
-            {result.skin_details?.back_bling && (
-              <div className="stat-card">
-                <span className="stat-label">BACK BLING</span>
-                <span className="stat-value">{result.skin_details.back_bling}</span>
-              </div>
-            )}
-            {result.skin_details?.pickaxe && (
-              <div className="stat-card">
-                <span className="stat-label">PICKAXE</span>
-                <span className="stat-value">{result.skin_details.pickaxe}</span>
-              </div>
-            )}
-          </div>
-
-          {/* Description */}
-          {result.description && (
-            <div className="description-card">
-              <h3>📜 SKIN CONCEPT</h3>
-              <div className={`description-content ${expandedDescription ? 'expanded' : ''}`}>
-                <p>{result.description}</p>
-              </div>
-              {result.description.length > 500 && (
-                <button 
-                  className="expand-btn"
-                  onClick={() => setExpandedDescription(!expandedDescription)}
-                >
-                  {expandedDescription ? '▲ Show Less' : '▼ Read More'}
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Item Shop Preview */}
-          <div className="item-shop-preview">
-            <h3>🛒 ITEM SHOP PREVIEW</h3>
-            <div className="shop-card" style={{ borderColor: getRarityColor(result.style) }}>
-              <div className="shop-image">
-                {hasGeneratedImages ? (
-                  <img src={result.generated_images[0]} alt="Shop preview" />
-                ) : (
-                  <img src={result.original_image} alt="Shop preview" />
-                )}
-                <div className="shop-rarity-bar" style={{ backgroundColor: getRarityColor(result.style) }}></div>
-              </div>
-              <div className="shop-info">
-                <span className="shop-name">{result.skin_details?.name || 'Custom Skin'}</span>
-                <span className="shop-price">
-                  <span className="vbucks-icon">💎</span>
-                  {result.style === 'legendary' ? '2,000' : 
-                   result.style === 'epic' ? '1,500' : 
-                   result.style === 'rare' ? '1,200' : 
-                   result.style === 'uncommon' ? '800' : '1,500'}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Share Section */}
-          <div className="share-section">
-            <h3>📤 SHARE YOUR SKIN</h3>
-            <div className="share-buttons">
-              <button className="share-btn twitter" onClick={() => {
-                const text = `Check out this AI-generated Fortnite skin concept! 🎮✨ Made with Fortnite Skin Generator`
-                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank')
-              }}>
-                🐦 Twitter
-              </button>
-              <button className="share-btn copy" onClick={() => {
-                navigator.clipboard.writeText('Made with Fortnite Skin Generator - AI powered by Nano Banana!')
-                alert('Link copied to clipboard!')
-              }}>
-                📋 Copy Link
-              </button>
+          {/* Shop Price */}
+          <div className="shop-preview">
+            <h4>Item Shop Price</h4>
+            <div className="shop-price">
+              <span className="vbucks-icon">💎</span>
+              <span>{getPrice(result.style)}</span>
             </div>
           </div>
         </div>
@@ -207,4 +182,3 @@ export default function SkinResult({ result, onReset }: SkinResultProps) {
     </div>
   )
 }
-

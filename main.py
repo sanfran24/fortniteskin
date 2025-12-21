@@ -269,8 +269,16 @@ async def generate_fortnite_skin(
 
 Based on this source image description: {image_description}
 
-Generate a Fortnite character skin that captures the essence of this subject while 
-applying the Fortnite art style. The skin should be ready for the Item Shop!"""
+CRITICAL VISUAL REQUIREMENTS:
+1. FULL BODY character from HEAD TO TOE (not cropped)
+2. GRADIENT BACKGROUND: Dark blue fading to purple (Item Shop style)
+3. CIRCULAR PLATFORM: Character standing on a glowing circular pedestal/platform at their feet
+4. 3D rendered style like official Fortnite promotional art
+5. Item Shop display quality presentation
+
+The platform should be a glowing circle on the ground that the character stands on - just like the Fortnite Item Shop!
+
+Transform this into an authentic Fortnite skin that captures the essence of the source!"""
                     
                     # Try to generate image using the Gemini 2.0 model
                     try:
@@ -340,13 +348,13 @@ Make it sound like official Fortnite patch notes!"""
         except Exception as e:
             logger.error(f"[{request_id}] Generation failed: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Skin generation failed: {str(e)}")
-        
+            
         # Convert original image to base64
         def convert_to_base64(img, req_id):
             buffer = io.BytesIO()
             img.save(buffer, format="PNG")
             return base64.b64encode(buffer.getvalue()).decode("utf-8")
-        
+            
         original_base64 = await asyncio.get_event_loop().run_in_executor(
             executor, convert_to_base64, image, request_id
         )
@@ -373,7 +381,7 @@ Make it sound like official Fortnite patch notes!"""
                 "Access-Control-Allow-Headers": "*",
             }
         )
-        
+            
     except HTTPException:
         raise
     except Exception as e:
