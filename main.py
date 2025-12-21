@@ -67,12 +67,15 @@ def save_to_cache(image_hash: str, result: dict):
     except Exception as e:
         logger.warning(f"Failed to save cache: {e}")
 
-# CORS middleware
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
-if allowed_origins == ["*"]:
-    allow_origins_list = ["*"]
-else:
-    allow_origins_list = [origin.strip() for origin in allowed_origins]
+# CORS middleware - Production domains
+allow_origins_list = [
+    "https://fortniteme.xyz",
+    "https://www.fortniteme.xyz",
+    "http://fortniteme.xyz",
+    "http://www.fortniteme.xyz",
+    "http://localhost:5173",  # Local dev
+    "http://localhost:3000",
+]
 
 app.add_middleware(
     CORSMiddleware,
